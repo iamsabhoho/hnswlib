@@ -5,8 +5,8 @@
 # command to get LEDA card information
 LEDAGSSH    =   "ledag-ssh -o localhost"
 
-# default location for datasets
-DSET_PATH   =   "/mnt/nas1/fvs_benchmark_datasets"  
+# default search location for datasets
+DSET_PATHS  =   [ "/home/gwilliams/Projects/GXL", "/mnt/nas1/fvs_benchmark_datasets" ]
 
 # default location for GXL utilities
 GXL_PATH    =   "/home/gwilliams/Projects/GXL/bin"
@@ -35,7 +35,7 @@ import glob
 import shutil
 import argparse
 import time
-from subprocess import Popen, PIPE, STDOUT, call
+from subprocess import Popen, PIPE, STDOUT, call, check_output
 import tempfile
 from datetime import datetime
 import pandas
@@ -81,28 +81,42 @@ def get_leda_info( ):
 
 def copy_datasets( workdir, dset ):
     '''Copy datasets from remote/nas locally.'''
-   
-    # copy fbin
-    rpath = os.path.join( DSET_PATH, "%s.fbin" % dset )
-    if VERBOSE:  print("Remote fbin path = %s" % rpath)
-    cmd = [ "cp", rpath, workdir ]
-    if VERBOSE: print("\nRunning cp command", cmd, "\n")
-    rcode = call(cmd)
-    if rcode!=0:
-        print("ERROR: Could not copy file %s to %s" % (rpath ,workdir))
-        return False
+  
+    for dset_path in DSET_PATHS: 
 
-    # copy lbl
-    rpath = os.path.join( DSET_PATH, "%s.lbl" % dset )
-    if VERBOSE:  print("Remote lbl path = %s" % rpath)
-    cmd = [ "cp", rpath, workdir ]
-    if VERBOSE: print("\nRunning cp command", cmd, "\n")
-    rcode = call(cmd)
-    if rcode!=0:
-        print("ERROR: Could not copy file %s to %s" % (rpath ,workdir))
-        return False
+        # copy fbin
+        rpath = os.path.join( dset_path, "%s.fbin" % dset )
+        if not os.path.exists(rpath):
+            continue
+        if VERBOSE:  print("Remote fbin path = %s" % rpath)
+        cmd = [ "cp", rpath, workdir ]
+        if VERBOSE: print("\nRunning cp command", cmd, "\n")
+        rcode = call(cmd)
+        if rcode!=0:
+            print("ERROR: Could not copy file %s to %s" % (rpath ,workdir))
+            return False
+
+        # copy lbl
+        rpath = os.path.join( dset_path, "%s.lbl" % dset )
+        if VERBOSE:  print("Remote lbl path = %s" % rpath)
+        cmd = [ "cp", rpath, workdir ]
+        if VERBOSE: print("\nRunning cp command", cmd, "\n")
+        rcode = call(cmd)
+        if rcode!=0:
+            print("ERROR: Could not copy file %s to %s" % (rpath ,workdir))
+            return False
 
     return True
+
+def get_cen_gen_version():
+    '''Retrieve the version of the centroids generation utility.'''
+
+    cmd = [ os.path.join( GXL_PATH, CEN_GEN ), "--version" ]
+    if VERBOSE: print("\nGetting gxl centroids generation version", cmd, "\n")
+
+    p = check_output( cmd ) 
+    vers = p.decode('utf-8').replace("\n","")
+    return vers 
 
 def run_cen_gen_utility( workdir, dset ):
     '''Runs the GXL centroids generation utility.'''
@@ -136,6 +150,16 @@ def run_cen_gen_utility( workdir, dset ):
 
     return True
 
+def get_knn_graph_gen_version():
+    '''Retrieve the version of the knn graph generation utility.'''
+
+    cmd = [ os.path.join( GXL_PATH, KNN_GEN ), "--version" ]
+    if VERBOSE: print("\nGetting gxl knn graph generation version", cmd, "\n")
+
+    p = check_output( cmd )
+    vers = p.decode('utf-8').replace("\n","")
+    return vers
+
 def run_knn_graph_gen_utility( workdir, dset ):
     '''Runs the GXL knn graph generation utility.'''
     '''run-gxl --db <db filename> --cent <centroids filename> [OPTIONS]'''
@@ -168,6 +192,16 @@ def run_knn_graph_gen_utility( workdir, dset ):
 
     return True
 
+def get_knn_make_symmetric_gen_version():
+    '''Retrieve the version of the knn make symmetric generation utility.'''
+
+    cmd = [ os.path.join( GXL_PATH, KNN_MAKE_SYMMETRIC ), "--version" ]
+    if VERBOSE: print("\nGetting gxl knn make symmetric generation version", cmd, "\n")
+
+    p = check_output( cmd )
+    vers = p.decode('utf-8').replace("\n","")
+    return vers
+
 def run_knn_make_symmetric_gen_utility( workdir ):
     '''Runs the GXL knn symmetric generation utility.'''
     '''run-make-symmetric <forward_knn_graph_file_name> <distances_file_name> <optional: output_file_name>'''
@@ -199,6 +233,15 @@ def run_knn_make_symmetric_gen_utility( workdir ):
         if VERBOSE: print("gxl: %s" % bs, end="")
 
     return True
+
+def get_make_index_gen_version():
+    '''Retrieve the version of the make index generation utility.'''
+
+    cmd = [ os.path.join( GXL_PATH, MAKE_INDEX ), "--version" ]
+    if VERBOSE: print("\nGetting gxl make index generation version (file size)", cmd, "\n")
+
+    sz = os.path.getsize( os.path.join( GXL_PATH, MAKE_INDEX ) )
+    return "exesize="+str(sz)
 
 def run_index_gen_utility( workdir, dset, m, efc ):
     '''Runs the GXL index generation utility.'''
@@ -249,21 +292,23 @@ def move_index( workdir, outdir ):
         print("ERROR: Could not move file %s to %s" % (paths[0] ,outdir))
         return False
 
-    return True
+    return os.path.join( outdir, os.path.basename(paths[0]) )
    
 def write_results( results, dset, outdir ):
     '''Export the results as a CSV.'''
 
     df = pandas.DataFrame(results)
     df['dataset'] = dset
-    df.to_csv( os.path.join( outdir, "%s.csv" % dset ) )
-    print("Wrote timing results to csv file")
+    ts = datetime.now().timestamp()
+    fpath = os.path.join( outdir, "%s_%f.csv" % (dset,ts))
+    df.to_csv( fpath, sep='\t')
+    print("Wrote timing results to csv file to", fpath)
 
 def cleanup( workdir, error=False, msg='' ):
     '''Cleanup any temporary dir/file artifacts.'''
     '''If error==True, then raise an exception.'''
 
-    if VERBOSE: print("Removing directory %s" % workdir)
+    if VERBOSE: print("Removing temporary directory %s" % workdir)
 
     shutil.rmtree(workdir)
 
@@ -273,13 +318,20 @@ if __name__ == "__main__":
 
     # parse arguments
     parser = argparse.ArgumentParser("gxl benchmarking tool.")
-    parser.add_argument('-u','--gxl_utilities_path',  default=GXL_PATH)
-    parser.add_argument('-n','--npy_path', default=DSET_PATH)
     parser.add_argument('-d','--dataset', required=True,help="dataset name like 'deep-10M'")
     parser.add_argument('-m',type=int, default=32) 
     parser.add_argument('-e',type=int, default=64) # ef construction
     parser.add_argument('-o','--output', required=True, help="output directory")
     args = parser.parse_args()
+
+    # get gxl utility version strings
+    cen_gen_vers = get_cen_gen_version()
+    knn_gen_vers = get_knn_graph_gen_version()
+    make_symmetric_vers = get_knn_make_symmetric_gen_version()
+    make_index_vers = get_make_index_gen_version()
+
+    # collect results for export later
+    results = []
 
     # get leda card info
     num_boards, board_details = get_leda_info()
@@ -287,7 +339,10 @@ if __name__ == "__main__":
     if num_boards==0:
         raise Exception("ERROR: Could not find any APU boards")
 
-    # get the current working dir
+    results.append( {'operation':'ledainfo', 'subop':'boards', \
+        'numboards': num_boards, 'board_details':str(board_details) } )
+
+    # get the current working dir to be reset later
     curdir = os.getcwd()
 
     # create a temp working dir
@@ -299,16 +354,14 @@ if __name__ == "__main__":
     if not copy_datasets( tmpdir, args.dataset ):
         cleanup(tmpdir, error=True, msg="ERROR: Could not copy datasets.")
 
-    # collect timings
-    results = []
-
     # run centroids generation
     s = datetime.now()
     if not run_cen_gen_utility( tmpdir, args.dataset ):
         cleanup(tmpdir, error=True, msg="ERROR: Could not generate centroids.")
     e = datetime.now()
     print("cen gen walltime=", (e-s).total_seconds())
-    results.append( {'operation':'build-index', 'subop':'cen_gen', 'start':s, 'end':e, 'walltime': (e-s).total_seconds()} )
+    results.append( {'operation':'build-index', 'subop':'cen_gen', \
+        'version':cen_gen_vers, 'start':s, 'end':e, 'walltime': (e-s).total_seconds()} )
  
     # run knn graph generation
     s = datetime.now()
@@ -316,7 +369,8 @@ if __name__ == "__main__":
         cleanup(tmpdir, error=True, msg="ERROR: Could not generate knn graph.")
     e = datetime.now()
     print("knn gen walltime=", (e-s).total_seconds())
-    results.append( {'operation':'build-index', 'subop':'knn_gen', 'start':s, 'end':e, 'walltime': (e-s).total_seconds()} )
+    results.append( {'operation':'build-index', 'subop':'knn_gen', \
+        'version':knn_gen_vers, 'start':s, 'end':e, 'walltime': (e-s).total_seconds()} )
  
     # make knn graph symmetric
     s = datetime.now()
@@ -324,7 +378,8 @@ if __name__ == "__main__":
         cleanup(tmpdir, error=True, msg="ERROR: Could not make knn graph symmetric.")
     e = datetime.now()
     print("knn symmmetric walltime=", (e-s).total_seconds())
-    results.append( {'operation':'build-index', 'subop':'knn_symmetric', 'start':s, 'end':e, 'walltime': (e-s).total_seconds()} )
+    results.append( {'operation':'build-index', 'subop':'knn_symmetric', \
+        'version': make_symmetric_vers, 'start':s, 'end':e, 'walltime': (e-s).total_seconds()} )
     
     # make the index
     s = datetime.now()
@@ -332,13 +387,14 @@ if __name__ == "__main__":
         cleanup(tmpdir, error=True, msg="ERROR: Could not generate the index.")
     e = datetime.now()
     print("make index walltime=", (e-s).total_seconds())
-    results.append( {'operation':'build-index', 'subop':'index_gen', 'start':s, 'end':e, 'walltime': (e-s).total_seconds()} )
+    results.append( {'operation':'build-index', 'subop':'index_gen', \
+        'version': make_index_vers, 'start':s, 'end':e, 'walltime': (e-s).total_seconds()} )
 
     # finalize
     os.chdir( curdir )
-    move_index(tmpdir, args.output)
+    path = move_index(tmpdir, args.output)
     write_results(results, args.dataset, args.output )
     cleanup(tmpdir)
-    print("Done.  Generated index is at %s" % args.output)
+    print("Done.  Generated index is at %s" % path)
 
     sys.exit(0)
