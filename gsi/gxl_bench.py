@@ -6,7 +6,8 @@
 LEDAGSSH    =   "ledag-ssh -o localhost"
 
 # default search location for datasets
-DSET_PATHS  =   [ "/home/gwilliams/Projects/GXL", "/mnt/nas1/fvs_benchmark_datasets" ]
+DSET_LOCAL  =   "/home/gwilliams/Projects/GXL"
+DSET_REMOVE =   "/mnt/nas1/fvs_benchmark_datasets"
 
 # default location for GXL utilities
 GXL_PATH    =   "/home/gwilliams/Projects/GXL/bin"
@@ -79,34 +80,35 @@ def get_leda_info( ):
     # return number of boards and the board slot details array
     return len(slots), slots
 
-def copy_datasets( workdir, dset ):
-    '''Copy datasets from remote/nas locally.'''
-  
-    for dset_path in DSET_PATHS: 
+def get_datasets( workdir, dset ):
+    ''' Get fbin/lbl datasets from remote/nas local working dir.
+        Copy as needed.'''
 
-        # copy fbin
-        rpath = os.path.join( dset_path, "%s.fbin" % dset )
-        if not os.path.exists(rpath):
-            continue
-        if VERBOSE:  print("Remote fbin path = %s" % rpath)
-        cmd = [ "cp", rpath, workdir ]
+    # fbin, try local first
+    fbin_path = os.path.join( DSET_LOCAL, "%s.fbin" % dset )
+    if not os.path.exists(fbin_path):
+        # copy from remote
+        fbin_path = os.path.join( DSET_REMOTE, "%s.fbin" % dset )
+        cmd = [ "cp", fbin_path, workdir ]
         if VERBOSE: print("\nRunning cp command", cmd, "\n")
         rcode = call(cmd)
         if rcode!=0:
-            print("ERROR: Could not copy file %s to %s" % (rpath ,workdir))
+            print("ERROR: Could not copy file %s to %s" % (fbin_path ,workdir))
             return False
 
-        # copy lbl
-        rpath = os.path.join( dset_path, "%s.lbl" % dset )
-        if VERBOSE:  print("Remote lbl path = %s" % rpath)
-        cmd = [ "cp", rpath, workdir ]
+    # lbl, try local first
+    lbl_path = os.path.join( DSET_LOCAL, "%s.lbl" % dset )
+    if not os.path.exists(lbl_path):
+        # copy from remote
+        lbl_path = os.path.join( DSET_REMOTE, "%s.lbl" % dset )
+        cmd = [ "cp", lbl_path, workdir ]
         if VERBOSE: print("\nRunning cp command", cmd, "\n")
         rcode = call(cmd)
         if rcode!=0:
-            print("ERROR: Could not copy file %s to %s" % (rpath ,workdir))
+            print("ERROR: Could not copy file %s to %s" % (lbl_path ,workdir))
             return False
-
-    return True
+    
+    return fbin_path, lbl_path
 
 def get_cen_gen_version():
     '''Retrieve the version of the centroids generation utility.'''
@@ -118,7 +120,7 @@ def get_cen_gen_version():
     vers = p.decode('utf-8').replace("\n","")
     return vers 
 
-def run_cen_gen_utility( workdir, dset ):
+def run_cen_gen_utility( workdir, fbin_path ):
     '''Runs the GXL centroids generation utility.'''
     '''usage: run-gxl-cen-gen <db_filename> <optionals: quantization's low_cutoff and high_cutoff>'''
 
@@ -128,7 +130,7 @@ def run_cen_gen_utility( workdir, dset ):
     # code when the process exits.
     #
     cmd = [ os.path.join( GXL_PATH, CEN_GEN ),  ]
-    cmd += [ os.path.join(workdir, "%s.fbin" % dset)  ]
+    cmd += [ fbin_path  ]
     if VERBOSE: print("\nRunning gxl centroids generation command", cmd, "\n")
 
     os.chdir(workdir)
@@ -160,7 +162,7 @@ def get_knn_graph_gen_version():
     vers = p.decode('utf-8').replace("\n","")
     return vers
 
-def run_knn_graph_gen_utility( workdir, dset ):
+def run_knn_graph_gen_utility( workdir, fbin_path ):
     '''Runs the GXL knn graph generation utility.'''
     '''run-gxl --db <db filename> --cent <centroids filename> [OPTIONS]'''
 
@@ -170,7 +172,7 @@ def run_knn_graph_gen_utility( workdir, dset ):
     # code when the process exits.
     #
     cmd = [ os.path.join( GXL_PATH, KNN_GEN ),  ]
-    cmd += [ "--db", os.path.join(workdir, "%s.fbin" % dset) , "--cent", "./generated_q_centroids.bin"  ]
+    cmd += [ "--db", fbin_path , "--cent", "./generated_q_centroids.bin"  ]
     if VERBOSE: print("\nRunning gxl knn graph generation command", cmd, "\n")
 
     os.chdir( workdir )
@@ -243,7 +245,7 @@ def get_make_index_gen_version():
     sz = os.path.getsize( os.path.join( GXL_PATH, MAKE_INDEX ) )
     return "exesize="+str(sz)
 
-def run_index_gen_utility( workdir, dset, m, efc ):
+def run_index_gen_utility( workdir, fbin_path, lbl_path, m, efc ):
     '''Runs the GXL index generation utility.'''
     '''gxl-hnsw-idx-gen <db_filename> <labels_filename> <s_knn_graph_filename> <M> <ef_construction>'''
 
@@ -253,7 +255,7 @@ def run_index_gen_utility( workdir, dset, m, efc ):
     # code when the process exits.
     #
     cmd = [ os.path.join( GXL_PATH, MAKE_INDEX),  ]
-    cmd += [ os.path.join(workdir, "%s.fbin" % dset) , os.path.join(workdir, "%s.lbl" % dset)]
+    cmd += [ fbin_path, lbl_path ]
     cmd += [ "./s_knn_graph.bin", str(m), str(efc) ]
     if VERBOSE: print("\nRunning gxl make index command", cmd, "\n")
 
@@ -310,7 +312,7 @@ def cleanup( workdir, error=False, msg='' ):
 
     if VERBOSE: print("Removing temporary directory %s" % workdir)
 
-    shutil.rmtree(workdir)
+    ##shutil.rmtree(workdir)
 
     if error: raise Exception("%s" % msg)
 
@@ -351,12 +353,13 @@ if __name__ == "__main__":
     print('Created temporary directory', tmpdir)
 
     # copy datasets locally
-    if not copy_datasets( tmpdir, args.dataset ):
-        cleanup(tmpdir, error=True, msg="ERROR: Could not copy datasets.")
+    retv = get_datasets( tmpdir, args.dataset )
+    if not retv: cleanup(tmpdir, error=True, msg="ERROR: Could not copy datasets.")
+    fbin_path, lbl_path = retv
 
     # run centroids generation
     s = datetime.now()
-    if not run_cen_gen_utility( tmpdir, args.dataset ):
+    if not run_cen_gen_utility( tmpdir, fbin_path):
         cleanup(tmpdir, error=True, msg="ERROR: Could not generate centroids.")
     e = datetime.now()
     print("cen gen walltime=", (e-s).total_seconds())
@@ -365,7 +368,7 @@ if __name__ == "__main__":
  
     # run knn graph generation
     s = datetime.now()
-    if not run_knn_graph_gen_utility( tmpdir, args.dataset ):
+    if not run_knn_graph_gen_utility( tmpdir, fbin_path):
         cleanup(tmpdir, error=True, msg="ERROR: Could not generate knn graph.")
     e = datetime.now()
     print("knn gen walltime=", (e-s).total_seconds())
@@ -383,7 +386,7 @@ if __name__ == "__main__":
     
     # make the index
     s = datetime.now()
-    if not run_index_gen_utility( tmpdir, args.dataset, args.m, args.e ):
+    if not run_index_gen_utility( tmpdir, fbin_path, lbl_path, args.m, args.e ):
         cleanup(tmpdir, error=True, msg="ERROR: Could not generate the index.")
     e = datetime.now()
     print("make index walltime=", (e-s).total_seconds())
