@@ -23,7 +23,7 @@ def size_num(s):
 
 # GET PATH and LOAD FILES
 #data_path = '/home/gwilliams/Projects/GXL/deep-10M.npy'
-data_path = '/mnt/nas1/fvs_benchmark_datasets/deep-1000M.npy'
+data_path = '/mnt/nas1/fvs_benchmark_datasets/deep-20M.npy'
 data = np.load(data_path, allow_pickle=True)
 query_path = '/home/gwilliams/Projects/GXL/deep-queries-1000.npy'
 queries = np.load(query_path, allow_pickle=True)
@@ -38,7 +38,7 @@ k = 10
 num_records = size_num(numrecs)
 ef_construction = 64
 m = 32
-ef_search = 50
+ef_search = [64, 128, 256, 512]
 results = []
 
 ids = np.arange(num_records)
@@ -58,27 +58,28 @@ end_time = datetime.datetime.now()
 
 
 results.append({'operation':'build', 'start_time':start_time, 'end_time':end_time,\
-	'walltime':(end_time-start_time).seconds, 'units':'seconds',\
+	'walltime':(end_time-start_time).total_seconds(), 'units':'seconds',\
 	 'dataset':basename, 'numrecs':num_records,'ef_construction':ef_construction,\
 	 'M':m, 'ef_search':-1, 'labels':-1, 'distances':-1})
 
 # Controlling the recall by setting ef:
-p.set_ef(ef_search) # ef should always be > k
+for ef in ef_search:
+    p.set_ef(ef) # ef should always be > k
 
-for query in queries:
-	start_time = datetime.datetime.now()
-	# Query dataset, k - number of the closest elements (returns 2 numpy arrays)
-	labels, distances = p.knn_query(query, k=k)
-	end_time = datetime.datetime.now()
-	results.append({'operation':'search', 'start_time':start_time, \
-	'end_time':end_time, 'walltime':(end_time-start_time).microseconds,\
-	'units':'microseconds', 'dataset':basename, 'numrecs':num_records,\
-	'ef_construction':-1, 'M':-1, 'ef_search':ef_search, 'labels':labels, \
-	'distances':distances})
+    for query in queries:
+        start_time = datetime.datetime.now()
+        # Query dataset, k - number of the closest elements (returns 2 numpy arrays)
+        labels, distances = p.knn_query(query, k=k)
+        end_time = datetime.datetime.now()
+        results.append({'operation':'search', 'start_time':start_time, \
+        'end_time':end_time, 'walltime':((end_time-start_time).total_seconds() * 1000 ),\
+        'units':'milliseconds', 'dataset':basename, 'numrecs':num_records,\
+        'ef_construction':-1, 'M':-1, 'ef_search':ef, 'labels':labels, \
+        'distances':distances})
 
 
 df = pd.DataFrame(results)
-save_path = './results/vanilla_%s_%d_%d_%d.csv'%(basename, ef_construction, m, ef_search)
+save_path = './results/vanilla_%s_%d_%d_%d.csv'%(basename, ef_construction, m, ef)
 df.to_csv(save_path, sep="\t")
 print("done saving to csv")
 df = pd.read_csv(save_path, delimiter="\t")
