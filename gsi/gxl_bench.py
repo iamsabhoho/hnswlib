@@ -7,7 +7,7 @@ LEDAGSSH    =   "ledag-ssh -o localhost"
 
 # default search location for datasets
 DSET_LOCAL  =   "/home/gwilliams/Projects/GXL"
-DSET_REMOVE =   "/mnt/nas1/fvs_benchmark_datasets"
+DSET_REMOTE =   "/mnt/nas1/fvs_benchmark_datasets"
 
 # default location for GXL utilities
 GXL_PATH    =   "/home/gwilliams/Projects/GXL/bin"
@@ -118,6 +118,7 @@ def get_cen_gen_version():
 
     p = check_output( cmd ) 
     vers = p.decode('utf-8').replace("\n","")
+    if VERBOSE: print("version=", vers)
     return vers 
 
 def run_cen_gen_utility( workdir, fbin_path ):
@@ -160,6 +161,7 @@ def get_knn_graph_gen_version():
 
     p = check_output( cmd )
     vers = p.decode('utf-8').replace("\n","")
+    if VERBOSE: print("version=", vers)
     return vers
 
 def run_knn_graph_gen_utility( workdir, fbin_path ):
@@ -202,6 +204,7 @@ def get_knn_make_symmetric_gen_version():
 
     p = check_output( cmd )
     vers = p.decode('utf-8').replace("\n","")
+    if VERBOSE: print("version=", vers)
     return vers
 
 def run_knn_make_symmetric_gen_utility( workdir ):
@@ -243,7 +246,9 @@ def get_make_index_gen_version():
     if VERBOSE: print("\nGetting gxl make index generation version (file size)", cmd, "\n")
 
     sz = os.path.getsize( os.path.join( GXL_PATH, MAKE_INDEX ) )
-    return "exesize="+str(sz)
+    vers = "exesize="+str(sz)
+    if VERBOSE: print(vers)
+    return vers
 
 def run_index_gen_utility( workdir, fbin_path, lbl_path, m, efc ):
     '''Runs the GXL index generation utility.'''
