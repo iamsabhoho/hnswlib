@@ -23,7 +23,7 @@ def size_num(s):
 
 # GET PATH and LOAD FILES
 #data_path = '/home/gwilliams/Projects/GXL/deep-10M.npy'
-data_path = '/mnt/nas1/fvs_benchmark_datasets/deep-250M.npy'
+data_path = '/mnt/nas1/fvs_benchmark_datasets/deep-500M.npy'
 data = np.load(data_path, allow_pickle=True)
 query_path = '/home/gwilliams/Projects/GXL/deep-queries-1000.npy'
 queries = np.load(query_path, allow_pickle=True)

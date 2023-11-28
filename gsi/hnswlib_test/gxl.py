@@ -10,10 +10,10 @@ ef_search = [64, 128, 256, 512]
 results = []
 
 index_dir = '/mnt/nas1/GXL/deep1B/v2.0_with250Mfix/'
-filename = 'deep1B_250m_ef_64_M_32_gxl.bin'
+filename = 'deep1B_500m_ef_64_M_32_gxl.bin'
 index_path = os.path.join(index_dir, filename)
 #data_path = '/home/gwilliams/Projects/GXL/deep-10M.npy'
-data_path = '/mnt/nas1/fvs_benchmark_datasets/deep-250M.npy'
+data_path = '/mnt/nas1/fvs_benchmark_datasets/deep-500M.npy'
 #index_path = '/home/gwilliams/Projects/GXL/deep1B_50m_ef_64_M_32_gxl.bin'
 query_path = '/home/gwilliams/Projects/GXL/deep-queries-1000.npy'
 queries = np.load(query_path, allow_pickle=True)
