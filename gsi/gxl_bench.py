@@ -121,7 +121,7 @@ def get_cen_gen_version():
     if VERBOSE: print("version=", vers)
     return vers 
 
-def run_cen_gen_utility( workdir, fbin_path ):
+def run_cen_gen_utility( cpunodebind, preferred, workdir, fbin_path ):
     '''Runs the GXL centroids generation utility.'''
     '''usage: run-gxl-cen-gen <db_filename> <optionals: quantization's low_cutoff and high_cutoff>'''
 
@@ -132,6 +132,8 @@ def run_cen_gen_utility( workdir, fbin_path ):
     #
     cmd = [ os.path.join( GXL_PATH, CEN_GEN ),  ]
     cmd += [ fbin_path  ]
+    if cpunodebind!=None and preferred!=None:
+        cmd = [ "numactl", "--cpunodebind=%d" % cpunodebind, "--preferred=%d" % preferred ]  + cmd
     if VERBOSE: print("\nRunning gxl centroids generation command", cmd, "\n")
 
     os.chdir(workdir)
@@ -164,7 +166,7 @@ def get_knn_graph_gen_version():
     if VERBOSE: print("version=", vers)
     return vers
 
-def run_knn_graph_gen_utility( workdir, fbin_path ):
+def run_knn_graph_gen_utility( cpunodebind, preferred, workdir, fbin_path ):
     '''Runs the GXL knn graph generation utility.'''
     '''run-gxl --db <db filename> --cent <centroids filename> [OPTIONS]'''
 
@@ -175,6 +177,8 @@ def run_knn_graph_gen_utility( workdir, fbin_path ):
     #
     cmd = [ os.path.join( GXL_PATH, KNN_GEN ),  ]
     cmd += [ "--db", fbin_path , "--cent", "./generated_q_centroids.bin"  ]
+    if cpunodebind!=None and preferred!=None:
+        cmd = [ "numactl", "--cpunodebind=%d" % cpunodebind, "--preferred=%d" % preferred ]  + cmd
     if VERBOSE: print("\nRunning gxl knn graph generation command", cmd, "\n")
 
     os.chdir( workdir )
@@ -207,7 +211,7 @@ def get_knn_make_symmetric_gen_version():
     if VERBOSE: print("version=", vers)
     return vers
 
-def run_knn_make_symmetric_gen_utility( workdir ):
+def run_knn_make_symmetric_gen_utility( cpunodebind, preferred, workdir ):
     '''Runs the GXL knn symmetric generation utility.'''
     '''run-make-symmetric <forward_knn_graph_file_name> <distances_file_name> <optional: output_file_name>'''
 
@@ -218,6 +222,8 @@ def run_knn_make_symmetric_gen_utility( workdir ):
     #
     cmd = [ os.path.join( GXL_PATH, KNN_MAKE_SYMMETRIC ),  ]
     cmd += [ "./knn_graph.bin", "./distances.bin" ]
+    if cpunodebind!=None and preferred!=None:
+        cmd = [ "numactl", "--cpunodebind=%d" % cpunodebind, "--preferred=%d" % preferred ]  + cmd
     if VERBOSE: print("\nRunning gxl make knn graph symmetric generation command", cmd, "\n")
 
     os.chdir( workdir )
@@ -250,7 +256,7 @@ def get_make_index_gen_version():
     if VERBOSE: print(vers)
     return vers
 
-def run_index_gen_utility( workdir, fbin_path, lbl_path, m, efc ):
+def run_index_gen_utility( cpunodebind, preferred, workdir, fbin_path, lbl_path, m, efc ):
     '''Runs the GXL index generation utility.'''
     '''gxl-hnsw-idx-gen <db_filename> <labels_filename> <s_knn_graph_filename> <M> <ef_construction>'''
 
@@ -262,6 +268,8 @@ def run_index_gen_utility( workdir, fbin_path, lbl_path, m, efc ):
     cmd = [ os.path.join( GXL_PATH, MAKE_INDEX),  ]
     cmd += [ fbin_path, lbl_path ]
     cmd += [ "./s_knn_graph.bin", str(m), str(efc) ]
+    if cpunodebind!=None and preferred!=None:
+        cmd = [ "numactl", "--cpunodebind=%d" % cpunodebind, "--preferred=%d" % preferred ]  + cmd
     if VERBOSE: print("\nRunning gxl make index command", cmd, "\n")
 
     os.chdir( workdir )
@@ -329,6 +337,8 @@ if __name__ == "__main__":
     parser.add_argument('-m',type=int, default=32) 
     parser.add_argument('-e',type=int, default=64) # ef construction
     parser.add_argument('-o','--output', required=True, help="output directory")
+    parser.add_argument('-c','--cpunodebind', type=int)
+    parser.add_argument('-p','--preferred', type=int)
     args = parser.parse_args()
 
     # get gxl utility version strings
@@ -347,7 +357,8 @@ if __name__ == "__main__":
         raise Exception("ERROR: Could not find any APU boards")
 
     results.append( {'operation':'ledainfo', 'subop':'boards', \
-        'numboards': num_boards, 'board_details':str(board_details) } )
+        'numboards': num_boards, 'board_details':str(board_details), \
+        'cpunodebind':args.cpunodebind, 'preferred':args.preferred } )
 
     # get the current working dir to be reset later
     curdir = os.getcwd()
@@ -364,39 +375,43 @@ if __name__ == "__main__":
 
     # run centroids generation
     s = datetime.now()
-    if not run_cen_gen_utility( tmpdir, fbin_path):
+    if not run_cen_gen_utility( args.cpunodebind, args.preferred, tmpdir, fbin_path):
         cleanup(tmpdir, error=True, msg="ERROR: Could not generate centroids.")
     e = datetime.now()
     print("cen gen walltime=", (e-s).total_seconds())
     results.append( {'operation':'build-index', 'subop':'cen_gen', \
-        'version':cen_gen_vers, 'start':s, 'end':e, 'walltime': (e-s).total_seconds()} )
+        'version':cen_gen_vers, 'start':s, 'end':e, 'walltime': (e-s).total_seconds(),\
+        'cpunodebind':args.cpunodebind, 'preferred':args.preferred } )
  
     # run knn graph generation
     s = datetime.now()
-    if not run_knn_graph_gen_utility( tmpdir, fbin_path):
+    if not run_knn_graph_gen_utility( args.cpunodebind, args.preferred, tmpdir, fbin_path):
         cleanup(tmpdir, error=True, msg="ERROR: Could not generate knn graph.")
     e = datetime.now()
     print("knn gen walltime=", (e-s).total_seconds())
     results.append( {'operation':'build-index', 'subop':'knn_gen', \
-        'version':knn_gen_vers, 'start':s, 'end':e, 'walltime': (e-s).total_seconds()} )
+        'version':knn_gen_vers, 'start':s, 'end':e, 'walltime': (e-s).total_seconds(), \
+        'cpunodebind':args.cpunodebind, 'preferred':args.preferred } )
  
     # make knn graph symmetric
     s = datetime.now()
-    if not run_knn_make_symmetric_gen_utility( tmpdir ):
+    if not run_knn_make_symmetric_gen_utility( args.cpunodebind, args.preferred, tmpdir ):
         cleanup(tmpdir, error=True, msg="ERROR: Could not make knn graph symmetric.")
     e = datetime.now()
     print("knn symmmetric walltime=", (e-s).total_seconds())
     results.append( {'operation':'build-index', 'subop':'knn_symmetric', \
-        'version': make_symmetric_vers, 'start':s, 'end':e, 'walltime': (e-s).total_seconds()} )
+        'version': make_symmetric_vers, 'start':s, 'end':e, 'walltime': (e-s).total_seconds(),\
+        'cpunodebind':args.cpunodebind, 'preferred':args.preferred } )
     
     # make the index
     s = datetime.now()
-    if not run_index_gen_utility( tmpdir, fbin_path, lbl_path, args.m, args.e ):
+    if not run_index_gen_utility( args.cpunodebind, args.preferred, tmpdir, fbin_path, lbl_path, args.m, args.e ):
         cleanup(tmpdir, error=True, msg="ERROR: Could not generate the index.")
     e = datetime.now()
     print("make index walltime=", (e-s).total_seconds())
     results.append( {'operation':'build-index', 'subop':'index_gen', \
-        'version': make_index_vers, 'start':s, 'end':e, 'walltime': (e-s).total_seconds()} )
+        'version': make_index_vers, 'start':s, 'end':e, 'walltime': (e-s).total_seconds(), \
+        'cpunodebind':args.cpunodebind, 'preferred':args.preferred } )
 
     # finalize
     os.chdir( curdir )
