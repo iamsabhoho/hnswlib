@@ -1,11 +1,11 @@
 # This program tries to troubleshoot why we are seeing different behavior
 # when we search q-by-q using a GXL index vs a "vanilla" HNSW index.
 
-# Path to the 100M GXL built index
+# Path to the GXL built index
 GXL_INDEX_PATH = "/mnt/nas1/GXL/deep1B/v2.0_with250Mfix/deep1B_1m_ef_64_M_32_gxl.bin"
 
-# Path to the 100M dataset (numpy)
-DEEP1B_100M_DATASET = "/mnt/nas1/fvs_benchmark_datasets/deep-1M.npy"
+# Path to the dataset (numpy)
+DEEP1B_DATASET = "/mnt/nas1/fvs_benchmark_datasets/deep-1M.npy"
 
 # Path to the queries (numpy)
 DEEP1B_QUERIES = "/home/gwilliams/Projects/GXL/deep-queries-1000.npy"
@@ -49,32 +49,33 @@ def compute_recall(a, b):
 
 
 def test():
-    '''This will create a 100M of Deep-1B HNSWLib index via GXL or normal ('vanilla' )'''
+    '''This will create a Deep-1B(subset) HNSWLib index via GXL or normal ('vanilla' )'''
     '''and compare the q-b-q search performance.'''
 
     # load the datasetA
     print()
-    print("Loading %s" % DEEP1B_100M_DATASET)
-    data = np.load( DEEP1B_100M_DATASET, allow_pickle=True)
+    print("Loading dataset from %s" % DEEP1B_DATASET)
+    data = np.load( DEEP1B_DATASET, allow_pickle=True)
+    print("Load done, shape=", data.shape)
 
     # load the queries
     queries = np.load( DEEP1B_QUERIES, allow_pickle=True )
-    print("Loaded queries", queries.shape)
+    print("Loaded queries, shape=", queries.shape)
 
     # load the queries ground truth
     gt = np.load( DEEP1B_QUERIES_GT, allow_pickle=True ).reshape((1000,100))
-    print("Loaded ground truth", gt.shape)
+    print("Loaded ground truth, shape=", gt.shape)
     print()
 
     # hnswlib needs label ids
     ids = np.arange(NUM_RECORDS)
 
     # build the index the 'vanilla' way
-    print("Building vanilla HNSWLib index for  %s" % DEEP1B_100M_DATASET)
+    print("Building vanilla HNSWLib index for  %s" % DEEP1B_DATASET)
     p = hnswlib.Index(space = 'cosine', dim = DIMS) 
     p.init_index(max_elements = NUM_RECORDS, ef_construction = EFC, M = M)
     p.add_items(data, ids)
-    print("Build Done.")
+    print("Build done.")
 
     # loop on queries, accumulate recall and latency
     print("Now performing searches on vanilla index.")
@@ -103,14 +104,14 @@ def test():
 
         print("Vanilla index: For ef_search=%d, mean recall=%f, mean latency=%f" % \
             (ef_search, np.mean( recalls ), np.mean( latencies ) ) )
-    print("Searches Done.")
+    print("Searches done.")
 
     # load the GXL index
     print()
     print("Loading GXL index from", GXL_INDEX_PATH )
     gxl = hnswlib.Index(space='cosine', dim=DIMS)
     gxl.load_index(GXL_INDEX_PATH, max_elements=NUM_RECORDS)
-    print("Load Done.")
+    print("Load done.")
 
     # loop on queries, accumulate recall and latency
     print("Now performing searches on GXL index.")
@@ -140,7 +141,7 @@ def test():
         print("GXL index: For ef_search=%d, mean recall=%f, mean latency=%f" % \
             (ef_search, np.mean( recalls ), np.mean( latencies ) ) )
 
-    print("Searches Done.")
+    print("Searches done.")
 
     
 if __name__ == "__main__":
