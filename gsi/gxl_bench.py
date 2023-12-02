@@ -340,7 +340,7 @@ def cleanup( workdir, error=False, msg='' ):
 
     if VERBOSE: print("Removing temporary directory %s" % workdir)
 
-    ##shutil.rmtree(workdir)
+    shutil.rmtree(workdir)
 
     if error: raise Exception("%s" % msg)
 
@@ -371,7 +371,7 @@ if __name__ == "__main__":
     print("\nFound %d boards" % num_boards)
     if num_boards==0:
         raise Exception("ERROR: Could not find any APU boards")
-
+    print()
     results.append( {'operation':'ledainfo', 'subop':'boards', \
         'numboards': num_boards, 'board_details':str(board_details), \
         'cpunodebind':args.cpunodebind, 'preferred':args.preferred } )
