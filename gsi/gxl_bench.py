@@ -338,9 +338,9 @@ def cleanup( workdir, error=False, msg='' ):
     '''Cleanup any temporary dir/file artifacts.'''
     '''If error==True, then raise an exception.'''
 
-    if VERBOSE: print("Removing temporary directory %s" % workdir)
-
-    shutil.rmtree(workdir)
+    if os.path.exists(workdir):
+        if VERBOSE: print("Removing temporary directory %s" % workdir)
+        shutil.rmtree(workdir)
 
     if error: raise Exception("%s" % msg)
 
