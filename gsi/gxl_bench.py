@@ -291,6 +291,21 @@ def run_index_gen_utility( cpunodebind, preferred, workdir, fbin_path, lbl_path,
 
     return True
 
+def remove_index( workdir, outdir ):
+    '''Remove the index file.'''
+
+    paths = glob.glob( os.path.join(workdir,"*_gxl.bin") )
+    if len(paths)!=1:
+        print("ERROR:  Cannot find index file")
+        return False
+
+    cmd = [ "rm", paths[0] ]
+    if VERBOSE: print("\nRunning rm command", cmd, "\n")
+    rcode = call(cmd)
+    if rcode!=0:
+        print("ERROR: Could not remove file %s to %s" % (paths[0] ,outdir))
+        return False
+
 
 def move_index( workdir, outdir ):
     '''Move the index file to the output directory.'''
@@ -339,6 +354,7 @@ if __name__ == "__main__":
     parser.add_argument('-o','--output', required=True, help="output directory")
     parser.add_argument('-c','--cpunodebind', type=int)
     parser.add_argument('-p','--preferred', type=int)
+    parser.add_argument('-r','--remove', action='store_true', default=False)
     args = parser.parse_args()
 
     # get gxl utility version strings
@@ -415,9 +431,13 @@ if __name__ == "__main__":
 
     # finalize
     os.chdir( curdir )
-    path = move_index(tmpdir, args.output)
+    if args.remove:
+        remove_index(tmpdir, args.output)
+    else:
+        path = move_index(tmpdir, args.output)
+        print("Generated index is at %s" % path)
     write_results(results, args.dataset, args.output )
     cleanup(tmpdir)
-    print("Done.  Generated index is at %s" % path)
+    print("Done.")
 
     sys.exit(0)
