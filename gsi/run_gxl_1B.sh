@@ -20,4 +20,4 @@ mkdir -p $OUTPUT
 DATASET="deep-1000M"
 echo "Running GXL on $DATASET"
 echo "Writing output to $OUTPUT"
-python gxl_bench.py --dataset $DATASET --output $OUTPUT | tee "$OUTPUT/$DATASET.log"
+python -u gxl_bench.py --dataset $DATASET --output $OUTPUT | tee "$OUTPUT/$DATASET.log"
