@@ -294,6 +294,8 @@ def run_index_gen_utility( cpunodebind, preferred, workdir, fbin_path, lbl_path,
 def remove_index( workdir, outdir ):
     '''Remove the index file.'''
 
+    raise Exception("FIX ME!")
+
     paths = glob.glob( os.path.join(workdir,"*_gxl.bin") )
     if len(paths)!=1:
         print("ERROR:  Cannot find index file")
@@ -434,8 +436,8 @@ if __name__ == "__main__":
     if args.remove:
         remove_index(tmpdir, args.output)
     else:
-        path = move_index(tmpdir, args.output)
-        print("Generated index is at %s" % path)
+        #path = move_index(tmpdir, args.output)
+        print("Generated index is at %s" % tmpdir)
     write_results(results, args.dataset, args.output )
     cleanup(tmpdir)
     print("Done.")
