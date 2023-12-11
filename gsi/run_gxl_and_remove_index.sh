@@ -26,7 +26,6 @@ echo "Running GXL on $DATASET"
 echo "Writing output to $OUTPUT"
 python -u gxl_bench.py --dataset $DATASET --output $OUTPUT --cpunodebind $BINDCPU --preferred $PREFCPU --remove | tee "$OUTPUT/$DATASET.log" 
 
-exit 1
 
 # run GXL on 10M
 DATASET="deep-10M"
@@ -47,7 +46,7 @@ echo "Writing output to $OUTPUT"
 python gxl_bench.py --dataset $DATASET --output $OUTPUT --cpunodebind $BINDCPU --preferred $PREFCPU --remove | tee "$OUTPUT/$DATASET.log"
 
 # run GXL on 100M
-DATASET="deep-50M"
+DATASET="deep-100M"
 echo "Running GXL on $DATASET"
 echo "Writing output to $OUTPUT"
 python gxl_bench.py --dataset $DATASET --output $OUTPUT --cpunodebind $BINDCPU --preferred $PREFCPU --remove | tee "$OUTPUT/$DATASET.log"

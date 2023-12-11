@@ -9,13 +9,12 @@ dim = 96
 ef_search = [64, 128, 256, 512]
 results = []
 
-#index_dir = '/mnt/nas1/GXL/deep1B/v2.0_with250Mfix/'
-#index_dir = '/tmp/gxl_1701298133/'
-index_dir = '/tmp/gxl_1701406129'
-filename = 'deep1B_250m_ef_64_M_32_gxl.bin'
+index_dir = '/mnt/nas1/GXL/deep1B/v2.0_with250Mfix/'
+#index_dir = '/tmp/gxl_1701406129'
+filename = 'deep1B_1000m_ef_64_M_32_gxl.bin'
 index_path = os.path.join(index_dir, filename)
 #data_path = '/home/gwilliams/Projects/GXL/deep-10M.npy'
-data_path = '/mnt/nas1/fvs_benchmark_datasets/deep-250M.npy'
+data_path = '/mnt/nas1/fvs_benchmark_datasets/deep-1000M.npy'
 #index_path = '/home/gwilliams/Projects/GXL/deep1B_50m_ef_64_M_32_gxl.bin'
 query_path = '/home/gwilliams/Projects/GXL/deep-queries-1000.npy'
 queries = np.load(query_path, allow_pickle=True)
