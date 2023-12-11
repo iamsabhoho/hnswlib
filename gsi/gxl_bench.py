@@ -294,6 +294,8 @@ def run_index_gen_utility( cpunodebind, preferred, workdir, fbin_path, lbl_path,
 def remove_index( workdir, outdir ):
     '''Remove the index file.'''
 
+    raise Exception("FIX ME!")
+
     paths = glob.glob( os.path.join(workdir,"*_gxl.bin") )
     if len(paths)!=1:
         print("ERROR:  Cannot find index file")
@@ -338,9 +340,9 @@ def cleanup( workdir, error=False, msg='' ):
     '''Cleanup any temporary dir/file artifacts.'''
     '''If error==True, then raise an exception.'''
 
-    if VERBOSE: print("Removing temporary directory %s" % workdir)
-
-    ##shutil.rmtree(workdir)
+    if os.path.exists(workdir):
+        if VERBOSE: print("Removing temporary directory %s" % workdir)
+        shutil.rmtree(workdir)
 
     if error: raise Exception("%s" % msg)
 
@@ -371,7 +373,7 @@ if __name__ == "__main__":
     print("\nFound %d boards" % num_boards)
     if num_boards==0:
         raise Exception("ERROR: Could not find any APU boards")
-
+    print()
     results.append( {'operation':'ledainfo', 'subop':'boards', \
         'numboards': num_boards, 'board_details':str(board_details), \
         'cpunodebind':args.cpunodebind, 'preferred':args.preferred } )
@@ -434,8 +436,8 @@ if __name__ == "__main__":
     if args.remove:
         remove_index(tmpdir, args.output)
     else:
-        path = move_index(tmpdir, args.output)
-        print("Generated index is at %s" % path)
+        #path = move_index(tmpdir, args.output)
+        print("Generated index is at %s" % tmpdir)
     write_results(results, args.dataset, args.output )
     cleanup(tmpdir)
     print("Done.")
