@@ -166,7 +166,7 @@ def get_knn_graph_gen_version():
     if VERBOSE: print("version=", vers)
     return vers
 
-def run_knn_graph_gen_utility( cpunodebind, preferred, workdir, fbin_path ):
+def run_knn_graph_gen_utility( cpunodebind, preferred, workdir, fbin_path, cleanup=True ):
     '''Runs the GXL knn graph generation utility.'''
     '''run-gxl --db <db filename> --cent <centroids filename> [OPTIONS]'''
 
@@ -198,6 +198,13 @@ def run_knn_graph_gen_utility( cpunodebind, preferred, workdir, fbin_path ):
         bs = b.decode('utf-8')
         if VERBOSE: print("gxl: %s" % bs, end="")
 
+    if cleanup: # done with the centroids file so remove it
+        cmd = [ "rm", "./generated_q_centroids.bin" ]
+        if VERBOSE: print("\nCleanup, running rm command", cmd, "\n")
+        rcode = call(cmd)
+        if rcode!=0:
+            print("ERROR: Could not remove file %s" % "./knn_graph.bin")
+
     return True
 
 def get_knn_make_symmetric_gen_version():
@@ -211,7 +218,7 @@ def get_knn_make_symmetric_gen_version():
     if VERBOSE: print("version=", vers)
     return vers
 
-def run_knn_make_symmetric_gen_utility( cpunodebind, preferred, workdir ):
+def run_knn_make_symmetric_gen_utility( cpunodebind, preferred, workdir, cleanup=True ):
     '''Runs the GXL knn symmetric generation utility.'''
     '''run-make-symmetric <forward_knn_graph_file_name> <distances_file_name> <optional: output_file_name>'''
 
@@ -242,6 +249,13 @@ def run_knn_make_symmetric_gen_utility( cpunodebind, preferred, workdir ):
             continue
         bs = b.decode('utf-8')
         if VERBOSE: print("gxl: %s" % bs, end="")
+
+    if cleanup: # done with the non symmetric file so remove it
+        cmd = [ "rm", "./knn_graph.bin" ]
+        if VERBOSE: print("\nCleanup, running rm command", cmd, "\n")
+        rcode = call(cmd)
+        if rcode!=0:
+            print("ERROR: Could not remove file %s" % "./knn_graph.bin")
 
     return True
 
