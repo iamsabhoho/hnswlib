@@ -256,6 +256,12 @@ def run_knn_make_symmetric_gen_utility( cpunodebind, preferred, workdir, cleanup
         rcode = call(cmd)
         if rcode!=0:
             print("ERROR: Could not remove file %s" % "./knn_graph.bin")
+        
+        cmd = [ "rm", "./distances.bin" ]
+        if VERBOSE: print("\nCleanup, running rm command", cmd, "\n")
+        rcode = call(cmd)
+        if rcode!=0:
+            print("ERROR: Could not remove file %s" % "./distances.bin")
 
     return True
 
@@ -270,7 +276,7 @@ def get_make_index_gen_version():
     if VERBOSE: print(vers)
     return vers
 
-def run_index_gen_utility( cpunodebind, preferred, workdir, fbin_path, lbl_path, m, efc ):
+def run_index_gen_utility( cpunodebind, preferred, workdir, fbin_path, lbl_path, m, efc, cleanup=True ):
     '''Runs the GXL index generation utility.'''
     '''gxl-hnsw-idx-gen <db_filename> <labels_filename> <s_knn_graph_filename> <M> <ef_construction>'''
 
@@ -302,6 +308,13 @@ def run_index_gen_utility( cpunodebind, preferred, workdir, fbin_path, lbl_path,
             continue
         bs = b.decode('utf-8')
         if VERBOSE: print("gxl: %s" % bs, end="")
+
+    if cleanup:
+        cmd = [ "rm", "./s_knn_graph.bin" ]
+        if VERBOSE: print("\nCleanup, running rm command", cmd, "\n")
+        rcode = call(cmd)
+        if rcode!=0:
+            print("ERROR: Could not remove file %s" % "./s_knn_graph.bin")
 
     return True
 
