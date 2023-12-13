@@ -16,7 +16,7 @@ OUTPUT="/tmp/gxl_$TIMESTAMP"
 #
 
 # run GXL on 1B
-DATASET="deep-10M"
+DATASET="deep-1000M"
 echo "Running GXL on $DATASET"
 echo "Writing output to $OUTPUT"
 python -u gxl_bench.py --dataset $DATASET --output $OUTPUT | tee "$OUTPUT/$DATASET.log"
