@@ -9,8 +9,8 @@ dim = 96
 ef_search = [64, 128, 256, 512]
 results = []
 
-#index_dir = '/mnt/nas1/GXL/deep1B/v2.0_with250Mfix/'
-index_dir = '/tmp/gxl_1702413856/'
+index_dir = '/mnt/nas1/GXL/deep1B/v2.0_with250Mfix/'
+#index_dir = '/tmp/gxl_1702413856/'
 filename = 'deep1B_1000m_ef_64_M_32_gxl.bin'
 index_path = os.path.join(index_dir, filename)
 #data_path = '/home/gwilliams/Projects/GXL/deep-10M.npy'
@@ -69,7 +69,8 @@ for ef in ef_search:
             'ef_search':ef, 'labels':labels, 'distances':distances})
 
 df = pd.DataFrame(results)
-save_path = './results/gxl_numactl_load_%s_%d.csv'%(basename, ef)
+#save_path = './results/gxl_numactl_load_%s_%d.csv'%(basename, ef)
+save_path = './results/test-1000m.csv'
 df.to_csv(save_path, sep="\t")
 print("done saving to csv")
 df = pd.read_csv(save_path, delimiter='\t')
