@@ -41,7 +41,7 @@ echo "Writing output to $OUTPUT"
 python gxl_bench.py --dataset $DATASET --output "$OUTPUT/$DATASET" | tee "$OUTPUT/$DATASET.log"
 
 # run GXL on 100M
-DATASET="deep-50M"
+DATASET="deep-100M"
 echo "Running GXL on $DATASET"
 echo "Writing output to $OUTPUT"
 python gxl_bench.py --dataset $DATASET --output "$OUTPUT/$DATASET" | tee "$OUTPUT/$DATASET.log"
