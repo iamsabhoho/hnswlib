@@ -7,5 +7,9 @@ This directory contains GXL benchmark tools and analysis:
 * gen_labels.py - This will create a trivial numeric labels dataset required by the GXL utilities. 
 * rsync_csv_from_nas1.sh - This is a helper script to sync just the CSV files from a benchmkark machine.
 * analyze_gxl_benchmkars.ipynb - This is a notebook to analyze just the GXL build benchmarks.
+* vanilla.py: to run native hnswlib for building and searching
+* gxl.py: to run benchmarks by loading gxl index
+* analyze.ipynb: to produce graphs on https://gsitechnology.sharepoint.com/sites/App_Team_CA/SitePages/GXL-Benchmarking.aspx 
+
  
 
