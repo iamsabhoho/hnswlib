@@ -38,5 +38,8 @@ Please consult the jupyter notebook [analyze.ipynb](analyze.ipynb).
 * graphs which focus on 100M or higher should use "hours" on y axis
 * gxl_bench.py should be able to predict the amount of disk storage needed and warn user if its too low
 * gxl_bench.py should report on the properties of the disk used (ie, nvm or not)
- 
+* analyze and show P90/P95/P99 search latencies
+* finish 1B
+* analyze on 14 APU system
+* larger dim dataset
 
