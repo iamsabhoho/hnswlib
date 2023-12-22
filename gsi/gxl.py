@@ -9,12 +9,12 @@ dim = 96
 ef_search = [64, 128, 256, 512]
 results = []
 
-#index_dir = '/mnt/nas1/GXL/deep1B/v2.0_with250Mfix/'
-index_dir = '/tmp/gxl_1701298133/'
-filename = 'deep1B_1m_ef_64_M_32_gxl.bin'
+index_dir = '/mnt/nas1/GXL/deep1B/v2.0_with250Mfix/'
+#index_dir = '/tmp/gxl_1702413856/'
+filename = 'deep1B_1000m_ef_64_M_32_gxl.bin'
 index_path = os.path.join(index_dir, filename)
 #data_path = '/home/gwilliams/Projects/GXL/deep-10M.npy'
-data_path = '/mnt/nas1/fvs_benchmark_datasets/deep-1M.npy'
+data_path = '/mnt/nas1/fvs_benchmark_datasets/deep-1000M.npy'
 #index_path = '/home/gwilliams/Projects/GXL/deep1B_50m_ef_64_M_32_gxl.bin'
 query_path = '/home/gwilliams/Projects/GXL/deep-queries-1000.npy'
 queries = np.load(query_path, allow_pickle=True)
@@ -69,7 +69,8 @@ for ef in ef_search:
             'ef_search':ef, 'labels':labels, 'distances':distances})
 
 df = pd.DataFrame(results)
-save_path = './results/gxl_numactl_load_%s_%d.csv'%(basename, ef)
+#save_path = './results/gxl_numactl_load_%s_%d.csv'%(basename, ef)
+save_path = './results/test-1000m.csv'
 df.to_csv(save_path, sep="\t")
 print("done saving to csv")
 df = pd.read_csv(save_path, delimiter='\t')

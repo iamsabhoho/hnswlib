@@ -23,7 +23,7 @@ def size_num(s):
 
 # GET PATH and LOAD FILES
 #data_path = '/home/gwilliams/Projects/GXL/deep-10M.npy'
-data_path = '/mnt/nas1/fvs_benchmark_datasets/deep-500M.npy'
+data_path = '/mnt/nas1/fvs_benchmark_datasets/deep-1000M.npy'
 data = np.load(data_path, allow_pickle=True)
 query_path = '/home/gwilliams/Projects/GXL/deep-queries-1000.npy'
 queries = np.load(query_path, allow_pickle=True)
@@ -61,6 +61,15 @@ results.append({'operation':'build', 'start_time':start_time, 'end_time':end_tim
 	'walltime':(end_time-start_time).total_seconds(), 'units':'seconds',\
 	 'dataset':basename, 'numrecs':num_records,'ef_construction':ef_construction,\
 	 'M':m, 'ef_search':-1, 'labels':-1, 'distances':-1})
+
+
+"""#save_index_dir = '/mnt/nas1/GXL/deep1B/sh_vanilla_idx/'
+save_index_dir = './results/vanilla_idx/'
+filename_idx = '%s_ef_%d_M_%d_vanilla.bin'%(basename, ef_construction, m)
+save_index_path = os.path.join(save_index_dir, filename_idx)
+print("saving index to '%s'" % save_index_path)
+p.save_index(save_index_path)
+print('done saving index...')"""
 
 # Controlling the recall by setting ef:
 for ef in ef_search:
