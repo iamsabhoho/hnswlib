@@ -6,13 +6,21 @@
 * python >= 3.8 (We used Anaconda to create the proper environment)
 * install packages via requirements.txt 
 
-## How We Benchmark the GXL
+## How We Benchmark Building Indexes With GXL
 
 We created [gxl_bench.py](gxl_bench.py) which invokes the various GXL utilities with timing and exports a CSV with the timing data.
 
 Please consult the script [run_gxl_apu3.sh](run_gxl_apu3.sh)  which demonstrates how we invoked the python file for various subsets of deep-1B.
 
 Note that you might need to adjust the python file to reflect your environment (ie, where the fbin and lbl files are located, etc.)
+
+## How We Benchmark Searching On GXL Indexes
+
+We created [gxl.py](gxl.py) which loads GXL indexes and run it through hnswlib knn search. 
+
+## How We Benchmark Building And Searching With HNSWLIB
+
+We created [vanilla.py](vanilla.py) which creates and searches with [hnswlib](https://github.com/nmslib/hnswlib/tree/master). 
 
 ## Visualizing the Benchmark Data
 
