@@ -15,8 +15,8 @@ OUTPUT="/mnt/nvme1/george/GXL/experiments/gxl_$TIMESTAMP"
 # Run GXL commands
 #
 
-# run GXL on 500M
-DATASET="deep-500M"
+# run GXL on 1B
+DATASET="deep-1000M"
 echo "Running GXL on $DATASET"
 echo "Writing output to $OUTPUT"
 python gxl_bench.py --dataset $DATASET --output "$OUTPUT/$DATASET" | tee "$OUTPUT/$DATASET.log"

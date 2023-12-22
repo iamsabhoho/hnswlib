@@ -8,9 +8,8 @@ set -x
 #
 
 # create timestamped output dir
-TIMESTAMP="1702496880" #$(date +%s)
+TIMESTAMP="1702496880" # Note we are wwriting into an existing directory with pre-determined timestamp
 OUTPUT="/mnt/nvme1/george/GXL/experiments/gxl_$TIMESTAMP"
-#mkdir -p $OUTPUT
 
 #
 # Run GXL commands
