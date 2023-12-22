@@ -26,7 +26,6 @@ echo "Running GXL on $DATASET"
 echo "Writing output to $OUTPUT"
 python -u gxl_bench.py --dataset $DATASET --output $OUTPUT --cpunodebind $BINDCPU --preferred $PREFCPU --remove | tee "$OUTPUT/$DATASET.log" 
 
-
 # run GXL on 10M
 DATASET="deep-10M"
 echo "Running GXL on $DATASET"

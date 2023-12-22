@@ -36,7 +36,7 @@ import glob
 import shutil
 import argparse
 import time
-from subprocess import Popen, PIPE, STDOUT, call, check_output
+from subprocess import Popen, PIPE, STDOUT, call, check_output, DEVNULL
 import tempfile
 from datetime import datetime
 import pandas
@@ -137,7 +137,7 @@ def run_cen_gen_utility( cpunodebind, preferred, workdir, fbin_path ):
     if VERBOSE: print("\nRunning gxl centroids generation command", cmd, "\n")
 
     os.chdir(workdir)
-    p = Popen( cmd, stdout=PIPE, stdin=PIPE, stderr=STDOUT, shell=False)
+    p = Popen( cmd, stdout=PIPE, stdin=DEVNULL, stderr=STDOUT, shell=False)
     os.set_blocking(p.stdout.fileno(), False)
     while True:
         if p.poll()!=None:
@@ -166,7 +166,7 @@ def get_knn_graph_gen_version():
     if VERBOSE: print("version=", vers)
     return vers
 
-def run_knn_graph_gen_utility( cpunodebind, preferred, workdir, fbin_path ):
+def run_knn_graph_gen_utility( cpunodebind, preferred, workdir, fbin_path, cleanup=True ):
     '''Runs the GXL knn graph generation utility.'''
     '''run-gxl --db <db filename> --cent <centroids filename> [OPTIONS]'''
 
@@ -182,7 +182,7 @@ def run_knn_graph_gen_utility( cpunodebind, preferred, workdir, fbin_path ):
     if VERBOSE: print("\nRunning gxl knn graph generation command", cmd, "\n")
 
     os.chdir( workdir )
-    p = Popen( cmd, stdout=PIPE, stdin=PIPE, stderr=STDOUT, shell=False)
+    p = Popen( cmd, stdout=PIPE, stdin=DEVNULL, stderr=STDOUT, shell=False)
     os.set_blocking(p.stdout.fileno(), False)
     while True:
         if p.poll()!=None:
@@ -198,6 +198,13 @@ def run_knn_graph_gen_utility( cpunodebind, preferred, workdir, fbin_path ):
         bs = b.decode('utf-8')
         if VERBOSE: print("gxl: %s" % bs, end="")
 
+    if cleanup: # done with the centroids file so remove it
+        cmd = [ "rm", "./generated_q_centroids.bin" ]
+        if VERBOSE: print("\nCleanup, running rm command", cmd, "\n")
+        rcode = call(cmd)
+        if rcode!=0:
+            print("ERROR: Could not remove file %s" % "./knn_graph.bin")
+
     return True
 
 def get_knn_make_symmetric_gen_version():
@@ -211,7 +218,7 @@ def get_knn_make_symmetric_gen_version():
     if VERBOSE: print("version=", vers)
     return vers
 
-def run_knn_make_symmetric_gen_utility( cpunodebind, preferred, workdir ):
+def run_knn_make_symmetric_gen_utility( cpunodebind, preferred, workdir, cleanup=True ):
     '''Runs the GXL knn symmetric generation utility.'''
     '''run-make-symmetric <forward_knn_graph_file_name> <distances_file_name> <optional: output_file_name>'''
 
@@ -227,7 +234,7 @@ def run_knn_make_symmetric_gen_utility( cpunodebind, preferred, workdir ):
     if VERBOSE: print("\nRunning gxl make knn graph symmetric generation command", cmd, "\n")
 
     os.chdir( workdir )
-    p = Popen( cmd, stdout=PIPE, stdin=PIPE, stderr=STDOUT, shell=False)
+    p = Popen( cmd, stdout=PIPE, stdin=DEVNULL, stderr=STDOUT, shell=False)
     os.set_blocking(p.stdout.fileno(), False)
     while True:
         if p.poll()!=None:
@@ -243,6 +250,19 @@ def run_knn_make_symmetric_gen_utility( cpunodebind, preferred, workdir ):
         bs = b.decode('utf-8')
         if VERBOSE: print("gxl: %s" % bs, end="")
 
+    if cleanup: # done with the non symmetric file so remove it
+        cmd = [ "rm", "./knn_graph.bin" ]
+        if VERBOSE: print("\nCleanup, running rm command", cmd, "\n")
+        rcode = call(cmd)
+        if rcode!=0:
+            print("ERROR: Could not remove file %s" % "./knn_graph.bin")
+        
+        cmd = [ "rm", "./distances.bin" ]
+        if VERBOSE: print("\nCleanup, running rm command", cmd, "\n")
+        rcode = call(cmd)
+        if rcode!=0:
+            print("ERROR: Could not remove file %s" % "./distances.bin")
+
     return True
 
 def get_make_index_gen_version():
@@ -256,7 +276,7 @@ def get_make_index_gen_version():
     if VERBOSE: print(vers)
     return vers
 
-def run_index_gen_utility( cpunodebind, preferred, workdir, fbin_path, lbl_path, m, efc ):
+def run_index_gen_utility( cpunodebind, preferred, workdir, fbin_path, lbl_path, m, efc, cleanup=True ):
     '''Runs the GXL index generation utility.'''
     '''gxl-hnsw-idx-gen <db_filename> <labels_filename> <s_knn_graph_filename> <M> <ef_construction>'''
 
@@ -273,7 +293,7 @@ def run_index_gen_utility( cpunodebind, preferred, workdir, fbin_path, lbl_path,
     if VERBOSE: print("\nRunning gxl make index command", cmd, "\n")
 
     os.chdir( workdir )
-    p = Popen( cmd, stdout=PIPE, stdin=PIPE, stderr=STDOUT, shell=False)
+    p = Popen( cmd, stdout=PIPE, stdin=DEVNULL, stderr=STDOUT, shell=False)
     os.set_blocking(p.stdout.fileno(), False)
     while True:
         if p.poll()!=None:
@@ -289,16 +309,21 @@ def run_index_gen_utility( cpunodebind, preferred, workdir, fbin_path, lbl_path,
         bs = b.decode('utf-8')
         if VERBOSE: print("gxl: %s" % bs, end="")
 
+    if cleanup:
+        cmd = [ "rm", "./s_knn_graph.bin" ]
+        if VERBOSE: print("\nCleanup, running rm command", cmd, "\n")
+        rcode = call(cmd)
+        if rcode!=0:
+            print("ERROR: Could not remove file %s" % "./s_knn_graph.bin")
+
     return True
 
-def remove_index( workdir, outdir ):
+def remove_index( outdir ):
     '''Remove the index file.'''
 
-    raise Exception("FIX ME!")
-
-    paths = glob.glob( os.path.join(workdir,"*_gxl.bin") )
+    paths = glob.glob( os.path.join(outdir,"*_gxl.bin") )
     if len(paths)!=1:
-        print("ERROR:  Cannot find index file")
+        print("ERROR:  Cannot find 1 index file")
         return False
 
     cmd = [ "rm", paths[0] ]
@@ -314,7 +339,7 @@ def move_index( workdir, outdir ):
 
     paths = glob.glob( os.path.join(workdir,"*_gxl.bin") )
     if len(paths)!=1:
-        print("ERROR:  Cannot find index file")
+        print("ERROR:  Cannot find 1 index file")
         return False
 
     cmd = [ "mv", paths[0], outdir ]
@@ -336,13 +361,13 @@ def write_results( results, dset, outdir ):
     df.to_csv( fpath, sep='\t')
     print("Wrote timing results to csv file to", fpath)
 
-def cleanup( workdir, error=False, msg='' ):
+def cleanup( outdir, error=False, msg='' ):
     '''Cleanup any temporary dir/file artifacts.'''
     '''If error==True, then raise an exception.'''
 
-    if os.path.exists(workdir):
-        if VERBOSE: print("Removing temporary directory %s" % workdir)
-        shutil.rmtree(workdir)
+#    if os.path.exists(workdir):
+#        if VERBOSE: print("Removing temporary directory %s" % workdir)
+#        shutil.rmtree(workdir)
 
     if error: raise Exception("%s" % msg)
 
@@ -358,6 +383,12 @@ if __name__ == "__main__":
     parser.add_argument('-p','--preferred', type=int)
     parser.add_argument('-r','--remove', action='store_true', default=False)
     args = parser.parse_args()
+
+    # check output dir
+    if os.path.exists( args.output ):
+        raise Exception("ERROR: output directory alreaddy exists.")
+    os.makedirs(args.output, exist_ok=False)
+    print("Created directory at", args.output)
 
     # get gxl utility version strings
     cen_gen_vers = get_cen_gen_version()
@@ -381,20 +412,15 @@ if __name__ == "__main__":
     # get the current working dir to be reset later
     curdir = os.getcwd()
 
-    # create a temp working dir
-    tmpdir = tempfile.mkdtemp()
-    os.chmod(tmpdir,0o777)
-    print('Created temporary directory', tmpdir)
-
     # copy datasets locally
-    retv = get_datasets( tmpdir, args.dataset )
-    if not retv: cleanup(tmpdir, error=True, msg="ERROR: Could not copy datasets.")
+    retv = get_datasets( args.output, args.dataset )
+    if not retv: cleanup(args.output, error=True, msg="ERROR: Could not copy datasets.")
     fbin_path, lbl_path = retv
 
     # run centroids generation
     s = datetime.now()
-    if not run_cen_gen_utility( args.cpunodebind, args.preferred, tmpdir, fbin_path):
-        cleanup(tmpdir, error=True, msg="ERROR: Could not generate centroids.")
+    if not run_cen_gen_utility( args.cpunodebind, args.preferred, args.output, fbin_path):
+        cleanup(args.output, error=True, msg="ERROR: Could not generate centroids.")
     e = datetime.now()
     print("cen gen walltime=", (e-s).total_seconds())
     results.append( {'operation':'build-index', 'subop':'cen_gen', \
@@ -403,8 +429,8 @@ if __name__ == "__main__":
  
     # run knn graph generation
     s = datetime.now()
-    if not run_knn_graph_gen_utility( args.cpunodebind, args.preferred, tmpdir, fbin_path):
-        cleanup(tmpdir, error=True, msg="ERROR: Could not generate knn graph.")
+    if not run_knn_graph_gen_utility( args.cpunodebind, args.preferred, args.output, fbin_path):
+        cleanup(args.output, error=True, msg="ERROR: Could not generate knn graph.")
     e = datetime.now()
     print("knn gen walltime=", (e-s).total_seconds())
     results.append( {'operation':'build-index', 'subop':'knn_gen', \
@@ -413,8 +439,8 @@ if __name__ == "__main__":
  
     # make knn graph symmetric
     s = datetime.now()
-    if not run_knn_make_symmetric_gen_utility( args.cpunodebind, args.preferred, tmpdir ):
-        cleanup(tmpdir, error=True, msg="ERROR: Could not make knn graph symmetric.")
+    if not run_knn_make_symmetric_gen_utility( args.cpunodebind, args.preferred, args.output ):
+        cleanup(args.output, error=True, msg="ERROR: Could not make knn graph symmetric.")
     e = datetime.now()
     print("knn symmmetric walltime=", (e-s).total_seconds())
     results.append( {'operation':'build-index', 'subop':'knn_symmetric', \
@@ -423,8 +449,8 @@ if __name__ == "__main__":
     
     # make the index
     s = datetime.now()
-    if not run_index_gen_utility( args.cpunodebind, args.preferred, tmpdir, fbin_path, lbl_path, args.m, args.e ):
-        cleanup(tmpdir, error=True, msg="ERROR: Could not generate the index.")
+    if not run_index_gen_utility( args.cpunodebind, args.preferred, args.output, fbin_path, lbl_path, args.m, args.e ):
+        cleanup(args.output, error=True, msg="ERROR: Could not generate the index.")
     e = datetime.now()
     print("make index walltime=", (e-s).total_seconds())
     results.append( {'operation':'build-index', 'subop':'index_gen', \
@@ -434,12 +460,9 @@ if __name__ == "__main__":
     # finalize
     os.chdir( curdir )
     if args.remove:
-        remove_index(tmpdir, args.output)
-    else:
-        #path = move_index(tmpdir, args.output)
-        print("Generated index is at %s" % tmpdir)
+        remove_index(args.output)
     write_results(results, args.dataset, args.output )
-    cleanup(tmpdir)
-    print("Done.")
+    cleanup(args.output)
+    print("Done. Wrote files to", args.output,".")
 
     sys.exit(0)
