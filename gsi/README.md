@@ -1,6 +1,8 @@
 
 # GXL Python Benchmarking Tools
 
+![Index Build Times With GXL](img/gxl_4vs8__vanilla_index_build_time_total.png)
+
 ## Prerequisites
 
 * python >= 3.8 (We used Anaconda to create the proper environment)
