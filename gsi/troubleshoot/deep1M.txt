@@ -1,0 +1,39 @@
+
+Loading dataset from /mnt/nas1/fvs_benchmark_datasets/deep-1M.npy
+Load done, shape= (1000000, 96)
+Loaded queries, shape= (1000, 96)
+Loaded ground truth, shape= (1000, 100)
+
+Building vanilla HNSWLib index for  /mnt/nas1/fvs_benchmark_datasets/deep-1M.npy
+Build done.
+Now performing searches on vanilla index.
+Vanilla index: For ef_search=64, mean recall=0.948900, mean latency=0.225262
+Vanilla index: For ef_search=128, mean recall=0.977300, mean latency=0.384795
+Vanilla index: For ef_search=256, mean recall=0.991200, mean latency=0.679007
+Vanilla index: For ef_search=512, mean recall=0.996400, mean latency=1.497786
+Searches done.
+
+Loading GXL index from /mnt/nas1/GXL/deep1B/v2.0_with250Mfix/deep1B_1m_ef_64_M_32_gxl.bin
+Load done.
+Now performing searches on GXL index.
+GXL index: For ef_search=64, mean recall=0.974800, mean latency=0.335983
+GXL index: For ef_search=128, mean recall=0.990900, mean latency=0.518401
+GXL index: For ef_search=256, mean recall=0.997400, mean latency=1.056758
+GXL index: For ef_search=512, mean recall=0.999100, mean latency=1.790725
+Searches done.
+
+
+Deep1B (1m subset) Search Comparison
+
+ef_search  index      recall     latency(ms)
+------------------------------------------
+64         vanilla    0.95       0.23      
+           gxl        0.97       0.34      
+128        vanilla    0.98       0.38      
+           gxl        0.99       0.52      
+256        vanilla    0.99       0.68      
+           gxl        1.00       1.06      
+512        vanilla    1.00       1.50      
+           gxl        1.00       1.79      
+
+Done.
