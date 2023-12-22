@@ -18,13 +18,13 @@ Note that you might need to adjust the python file to reflect your environment (
 
 We created [gxl.py](gxl.py) which loads GXL indexes and run it through hnswlib knn search. 
 
-This script shows an example of loading a GXL-built index for Deep1B-1000M. Please note the parameters use and change them as needed.
+This script shows an example of loading a GXL-built index for Deep1B-1000M. Please note the file paths and parameters use and change them as needed.
 
 ## How We Benchmark Building And Searching With HNSWLIB
 
 We created [vanilla.py](vanilla.py) which creates and searches with [hnswlib](https://github.com/nmslib/hnswlib/tree/master). 
 
-This script shows an example of building and searching HNSWLIB-built index for Deep1B-1000M. Please note the parameters use and change them as needed.
+This script shows an example of building and searching HNSWLIB-built index for Deep1B-1000M. Please note the file paths and parameters use and change them as needed.
 
 ## Visualizing the Benchmark Data
 
