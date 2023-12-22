@@ -4,7 +4,7 @@
 ## Prerequisites
 
 * python >= 3.8 (We used Anaconda to create the proper environment)
-* install packages via requirements.txt 
+* install packages via [requirements.txt](requirements.txt)
 
 ## How We Benchmark Building Indexes With GXL
 
