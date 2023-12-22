@@ -32,7 +32,7 @@ Please consult the jupyter notebook [analyze.ipynb](analyze.ipynb).
 
 ## TODO
 
-* gxl_bench.py "hard-codes" various directories such as paths to the fbin/lbl datasets and location of GXL utilites, so we should make those changeable via command line arguments
+* python files "hard-code" various parameters and directories such as paths to the fbin/lbl datasets and location of GXL utilites, so we should make those changeable via command line arguments
 * graphs which focus on 100M or higher should use "hours" on y axis
 * gxl_bench.py should be able to predict the amount of disk storage needed and warn user if its too low
 * gxl_bench.py should report on the properties of the disk used (ie, nvm or not)
