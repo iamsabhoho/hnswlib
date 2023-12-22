@@ -1,15 +1,21 @@
 
 GXL Benchmarking Tools
 
-This directory contains GXL benchmark tools and analysis:
-* gxl_bench.py - This will run all the GLX utilities on a chosen dataset (ie, "deep-10M")  and will export the index and timing related CSV data to the directory you specify.
-* np_convert_to_fbin.py - This will convert a numpy dataset to the format expected by GXL (see GXL wiki for more details.)
-* gen_labels.py - This will create a trivial numeric labels dataset required by the GXL utilities. 
-* rsync_csv_from_nas1.sh - This is a helper script to sync just the CSV files from a benchmkark machine.
-* analyze_gxl_benchmkars.ipynb - This is a notebook to analyze just the GXL build benchmarks.
-* vanilla.py: to run native hnswlib for building and searching
-* gxl.py: to run benchmarks by loading gxl index
-* analyze.ipynb: to produce graphs on https://gsitechnology.sharepoint.com/sites/App_Team_CA/SitePages/GXL-Benchmarking.aspx 
+# Prerequisites
 
+* python >= 3.8 (We used Anaconda to create the proper environment)
+* install packages via requirements.txt 
+
+# How We Benchmark the GXL
+
+We created [gxl_bench.py](gxl_bench.py) which invokes the various GXL utilities with timing and exports a CSV with the timing data.
+
+Please consult the script [run_gxl_apu3.sh](run_gxl_apu3.sh)  which demonstrates how we invoked the python file for various subsets of deep-1B.
+
+Note that you might need to adjust the python file to reflect your environment (ie, where the fbin and lbl files are located, etc.)
+
+# Visualizing the Benchmark Data
+
+Please consult the jupyter notebook [analyze.ipynb](analyze.ipynb).
  
 
