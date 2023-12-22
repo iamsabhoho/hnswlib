@@ -5,6 +5,8 @@ import pandas as pd
 import datetime
 import os
 
+# This script shows an example of building and searching Deep1B-1000M with HNSWLIB
+
 def size_num(s):
     '''get raw numercs of text abbrev'''
     if s == '1M': return 1000000
@@ -22,7 +24,6 @@ def size_num(s):
     else: raise Exception("Unsupported size " + s)
 
 # GET PATH and LOAD FILES
-#data_path = '/home/gwilliams/Projects/GXL/deep-10M.npy'
 data_path = '/mnt/nas1/fvs_benchmark_datasets/deep-1000M.npy'
 data = np.load(data_path, allow_pickle=True)
 query_path = '/home/gwilliams/Projects/GXL/deep-queries-1000.npy'
@@ -33,6 +34,7 @@ basename = os.path.basename(data_path).split(".")[0]
 numrecs = basename.split("-")[1]
 
 # DEFINE VARIABLES
+# Change the following parameters as needed
 dim = 96
 k = 10
 num_records = size_num(numrecs)
@@ -62,14 +64,15 @@ results.append({'operation':'build', 'start_time':start_time, 'end_time':end_tim
 	 'dataset':basename, 'numrecs':num_records,'ef_construction':ef_construction,\
 	 'M':m, 'ef_search':-1, 'labels':-1, 'distances':-1})
 
-
-"""#save_index_dir = '/mnt/nas1/GXL/deep1B/sh_vanilla_idx/'
+# Saving Index
+"""
 save_index_dir = './results/vanilla_idx/'
 filename_idx = '%s_ef_%d_M_%d_vanilla.bin'%(basename, ef_construction, m)
 save_index_path = os.path.join(save_index_dir, filename_idx)
 print("saving index to '%s'" % save_index_path)
 p.save_index(save_index_path)
-print('done saving index...')"""
+print('done saving index...')
+"""
 
 # Controlling the recall by setting ef:
 for ef in ef_search:
