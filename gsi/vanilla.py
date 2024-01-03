@@ -4,6 +4,7 @@ import pickle
 import pandas as pd 
 import datetime
 import os
+import psutil
 
 # This script shows an example of building and searching Deep1B-1000M with HNSWLIB
 
@@ -45,8 +46,10 @@ results = []
 
 ids = np.arange(num_records)
 
-start_time = datetime.datetime.now()
+process = psutil.Process()
 
+start_time = datetime.datetime.now()
+print("declaring index... ", process.memory_info().rss)
 # Declaring index
 p = hnswlib.Index(space = 'cosine', dim = dim) # possible options are l2, cosine or ip
 
@@ -57,6 +60,8 @@ p.init_index(max_elements = num_records, ef_construction = ef_construction, M = 
 p.add_items(data, ids)
 
 end_time = datetime.datetime.now()
+print("appending results... ", process.memory_info().rss)
+
 
 
 results.append({'operation':'build', 'start_time':start_time, 'end_time':end_time,\
@@ -74,10 +79,13 @@ p.save_index(save_index_path)
 print('done saving index...')
 """
 
+print("searching now...")
 # Controlling the recall by setting ef:
 for ef in ef_search:
     p.set_ef(ef) # ef should always be > k
 
+    print("ef: ", ef)
+    print(process.memory_info().rss)
     for query in queries:
         start_time = datetime.datetime.now()
         # Query dataset, k - number of the closest elements (returns 2 numpy arrays)
@@ -89,6 +97,8 @@ for ef in ef_search:
         'ef_construction':-1, 'M':-1, 'ef_search':ef, 'labels':labels, \
         'distances':distances})
 
+
+print("done... appending to df...")
 
 df = pd.DataFrame(results)
 save_path = './results/vanilla_%s_%d_%d_%d.csv'%(basename, ef_construction, m, ef)
