@@ -5,6 +5,7 @@ import pandas as pd
 import datetime
 import os
 import psutil
+import threading
 
 # This script shows an example of building and searching Deep1B-1000M with HNSWLIB
 
@@ -25,7 +26,8 @@ def size_num(s):
     else: raise Exception("Unsupported size " + s)
 
 # GET PATH and LOAD FILES
-data_path = '/mnt/nas1/fvs_benchmark_datasets/deep-1000M.npy'
+# data_path = '/mnt/nas1/fvs_benchmark_datasets/deep-10M.npy'
+data_path = '/home/gwilliams/Projects/GXL/deep-10M.npy'
 data = np.load(data_path, allow_pickle=True)
 query_path = '/home/gwilliams/Projects/GXL/deep-queries-1000.npy'
 queries = np.load(query_path, allow_pickle=True)
@@ -46,10 +48,34 @@ results = []
 
 ids = np.arange(num_records)
 
-process = psutil.Process()
+bQuitThread = False # signal from main thread to stop mon thread
+
+def mon_system():
+    '''This function is intended to be run via threading'''
+   
+    print("mon thread started") 
+    global bQuitThrea
+    import psutil
+    import time
+
+    while not bQuitThread:
+        time.sleep(1)
+        process = psutil.Process()
+        # TODO: get process usage
+
+        print("mon thread got memory usage...")
+
+        # TODO: save to CSV
+
+    print("mon thread done.")
+
+
+# launch monitor thread
+mon_thread = threading.Thread( target=mon_system, args=() )
+mon_thread.start()
 
 start_time = datetime.datetime.now()
-print("declaring index... ", process.memory_info().rss)
+#print("declaring index... ", process.memory_info().rss)
 # Declaring index
 p = hnswlib.Index(space = 'cosine', dim = dim) # possible options are l2, cosine or ip
 
@@ -60,9 +86,13 @@ p.init_index(max_elements = num_records, ef_construction = ef_construction, M = 
 p.add_items(data, ids)
 
 end_time = datetime.datetime.now()
-print("appending results... ", process.memory_info().rss)
+#print("appending results... ", process.memory_info().rss)
 
-
+# Tell monitor thread to stop
+print("Sending quit signal to mon thread...")
+bQuitThread = True
+print("Waiting...")
+mon_thread.join() # wait here for monitor thread to finish
 
 results.append({'operation':'build', 'start_time':start_time, 'end_time':end_time,\
 	'walltime':(end_time-start_time).total_seconds(), 'units':'seconds',\
@@ -85,7 +115,7 @@ for ef in ef_search:
     p.set_ef(ef) # ef should always be > k
 
     print("ef: ", ef)
-    print(process.memory_info().rss)
+    #print(process.memory_info().rss)
     for query in queries:
         start_time = datetime.datetime.now()
         # Query dataset, k - number of the closest elements (returns 2 numpy arrays)
