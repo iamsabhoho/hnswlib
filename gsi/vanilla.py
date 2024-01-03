@@ -54,7 +54,7 @@ def mon_system():
     '''This function is intended to be run via threading'''
    
     print("mon thread started") 
-    global bQuitThrea
+    global bQuitThread
     import psutil
     import time
 
