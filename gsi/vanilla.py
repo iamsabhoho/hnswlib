@@ -51,7 +51,7 @@ ids = np.arange(num_records)
 bQuitThread = False # signal from main thread to stop mon thread
 
 def mon_system():
-    '''This function is intended to be run via threading'''
+    '''This function is intended to have system monitoring stuff and should be run via threading'''
    
     print("mon thread started") 
     global bQuitThread
