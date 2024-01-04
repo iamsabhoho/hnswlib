@@ -27,8 +27,7 @@ def size_num(s):
     else: raise Exception("Unsupported size " + s)
 
 # GET PATH and LOAD FILES
-#data_path = '/mnt/nas1/fvs_benchmark_datasets/deep-100M.npy'
-data_path = '/home/gwilliams/Projects/GXL/deep-1000M.npy'
+data_path = '/home/gwilliams/Projects/GXL/deep-10M.npy'
 data = np.load(data_path, allow_pickle=True)
 query_path = '/home/gwilliams/Projects/GXL/deep-queries-1000.npy'
 queries = np.load(query_path, allow_pickle=True)
@@ -45,10 +44,12 @@ num_records = size_num(numrecs)
 ef_construction = 64
 m = 32
 ef_search = [64, 128, 256, 512]
+save_path = './results/vanilla_%s_%d_%d.csv'%(basename, ef_construction, m)
+print("CSV save path=", save_path)
+
+
 results = []
-
 ids = np.arange(num_records)
-
 bQuitThread = False # signal from main thread to stop mon thread
 
 def mon_system():
@@ -71,7 +72,9 @@ def mon_system():
 	    'dataset':-1, 'numrecs':-1,'ef_construction':-1,\
 	    'M':-1, 'ef_search':-1, 'labels':-1, 'distances':-1, 'memory':[mem.rss, mem.vms, mem.shared, mem.text, mem.lib, mem.data, mem.dirty]})
 
-        print("mon thread got memory usage...")
+        df = pd.DataFrame(results)
+        df.to_csv(save_path, sep="\t")
+        print("syncing %d total rows to csv" % len(results), save_path)
 
         time.sleep(10)
 
@@ -158,8 +161,7 @@ else:
 finally:
 
     df = pd.DataFrame(results)
-    save_path = './results/vanilla_%s_%d_%d.csv'%(basename, ef_construction, m)
     df.to_csv(save_path, sep="\t")
-    print("done saving to csv")
+    print("done saving to csv", save_path)
     df = pd.read_csv(save_path, delimiter="\t")
     print(df.head())
