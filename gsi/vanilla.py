@@ -6,6 +6,7 @@ import datetime
 import os
 import psutil
 import threading
+import time
 
 # This script shows an example of building and searching Deep1B-1000M with HNSWLIB
 
@@ -26,8 +27,8 @@ def size_num(s):
     else: raise Exception("Unsupported size " + s)
 
 # GET PATH and LOAD FILES
-# data_path = '/mnt/nas1/fvs_benchmark_datasets/deep-10M.npy'
-data_path = '/home/gwilliams/Projects/GXL/deep-10M.npy'
+#data_path = '/mnt/nas1/fvs_benchmark_datasets/deep-100M.npy'
+data_path = '/home/gwilliams/Projects/GXL/deep-1000M.npy'
 data = np.load(data_path, allow_pickle=True)
 query_path = '/home/gwilliams/Projects/GXL/deep-queries-1000.npy'
 queries = np.load(query_path, allow_pickle=True)
@@ -54,18 +55,25 @@ def mon_system():
     '''This function is intended to have system monitoring stuff and should be run via threading'''
    
     print("mon thread started") 
-    global bQuitThread
-    import psutil
-    import time
+    global bQuitThread, results
 
     while not bQuitThread:
-        time.sleep(1)
+        
         process = psutil.Process()
         # TODO: get process usage
+        mem = process.memory_info()
+        print("memory: ", mem)
+
+        start_time = datetime.datetime.now()
+
+        results.append({'operation':'mem', 'start_time':start_time, 'end_time':-1,\
+        'walltime':-1, 'units':'seconds',\
+	    'dataset':-1, 'numrecs':-1,'ef_construction':-1,\
+	    'M':-1, 'ef_search':-1, 'labels':-1, 'distances':-1, 'memory':[mem.rss, mem.vms, mem.shared, mem.text, mem.lib, mem.data, mem.dirty]})
 
         print("mon thread got memory usage...")
 
-        # TODO: save to CSV
+        time.sleep(10)
 
     print("mon thread done.")
 
@@ -76,63 +84,82 @@ mon_thread.start()
 
 start_time = datetime.datetime.now()
 #print("declaring index... ", process.memory_info().rss)
-# Declaring index
-p = hnswlib.Index(space = 'cosine', dim = dim) # possible options are l2, cosine or ip
+try:
 
-# Initializing index - the maximum number of elements should be known beforehand
-p.init_index(max_elements = num_records, ef_construction = ef_construction, M = m)
+    # to test the try block
+    #time.sleep(20)
+    #raise Exception("Fake Memory Error")
 
-# Element insertion (can be called several times):
-p.add_items(data, ids)
+    # Declaring index
+    p = hnswlib.Index(space = 'cosine', dim = dim) # possible options are l2, cosine or ip
 
-end_time = datetime.datetime.now()
-#print("appending results... ", process.memory_info().rss)
+    # Initializing index - the maximum number of elements should be known beforehand
+    p.init_index(max_elements = num_records, ef_construction = ef_construction, M = m)
 
-# Tell monitor thread to stop
-print("Sending quit signal to mon thread...")
-bQuitThread = True
-print("Waiting...")
-mon_thread.join() # wait here for monitor thread to finish
+    # Element insertion (can be called several times):
+    p.add_items(data, ids)
 
-results.append({'operation':'build', 'start_time':start_time, 'end_time':end_time,\
-	'walltime':(end_time-start_time).total_seconds(), 'units':'seconds',\
-	 'dataset':basename, 'numrecs':num_records,'ef_construction':ef_construction,\
-	 'M':m, 'ef_search':-1, 'labels':-1, 'distances':-1})
+except:
+    print("crashes...")
 
-# Saving Index
-"""
-save_index_dir = './results/vanilla_idx/'
-filename_idx = '%s_ef_%d_M_%d_vanilla.bin'%(basename, ef_construction, m)
-save_index_path = os.path.join(save_index_dir, filename_idx)
-print("saving index to '%s'" % save_index_path)
-p.save_index(save_index_path)
-print('done saving index...')
-"""
+    # Tell monitor thread to stop
+    print("Sending quit signal to mon thread...")
+    bQuitThread = True
+    print("Waiting...")
+    mon_thread.join() # wait here for monitor thread to finish
 
-print("searching now...")
-# Controlling the recall by setting ef:
-for ef in ef_search:
-    p.set_ef(ef) # ef should always be > k
+else:
 
-    print("ef: ", ef)
-    #print(process.memory_info().rss)
-    for query in queries:
-        start_time = datetime.datetime.now()
-        # Query dataset, k - number of the closest elements (returns 2 numpy arrays)
-        labels, distances = p.knn_query(query, k=k)
-        end_time = datetime.datetime.now()
-        results.append({'operation':'search', 'start_time':start_time, \
-        'end_time':end_time, 'walltime':((end_time-start_time).total_seconds() * 1000 ),\
-        'units':'milliseconds', 'dataset':basename, 'numrecs':num_records,\
-        'ef_construction':-1, 'M':-1, 'ef_search':ef, 'labels':labels, \
-        'distances':distances})
+    end_time = datetime.datetime.now()
+    #print("appending results... ", process.memory_info().rss)
+
+    # Tell monitor thread to stop
+    print("Sending quit signal to mon thread...")
+    bQuitThread = True
+    print("Waiting...")
+    mon_thread.join() # wait here for monitor thread to finish
+
+    results.append({'operation':'build', 'start_time':start_time, 'end_time':end_time,\
+        'walltime':(end_time-start_time).total_seconds(), 'units':'seconds',\
+        'dataset':basename, 'numrecs':num_records,'ef_construction':ef_construction,\
+        'M':m, 'ef_search':-1, 'labels':-1, 'distances':-1, 'memory':-1})
+
+    # Saving Index
+    """
+    save_index_dir = './results/vanilla_idx/'
+    filename_idx = '%s_ef_%d_M_%d_vanilla.bin'%(basename, ef_construction, m)
+    save_index_path = os.path.join(save_index_dir, filename_idx)
+    print("saving index to '%s'" % save_index_path)
+    p.save_index(save_index_path)
+    print('done saving index...')
+    """
+
+    print("searching now...")
+    # Controlling the recall by setting ef:
+    for ef in ef_search:
+        p.set_ef(ef) # ef should always be > k
+
+        print("ef: ", ef)
+        #print(process.memory_info().rss)
+        for query in queries:
+            start_time = datetime.datetime.now()
+            # Query dataset, k - number of the closest elements (returns 2 numpy arrays)
+            labels, distances = p.knn_query(query, k=k)
+            end_time = datetime.datetime.now()
+            results.append({'operation':'search', 'start_time':start_time, \
+            'end_time':end_time, 'walltime':((end_time-start_time).total_seconds() * 1000 ),\
+            'units':'milliseconds', 'dataset':basename, 'numrecs':num_records,\
+            'ef_construction':-1, 'M':-1, 'ef_search':ef, 'labels':labels, \
+            'distances':distances, 'memory':-1})
 
 
-print("done... appending to df...")
+    print("done... appending to df...")
 
-df = pd.DataFrame(results)
-save_path = './results/vanilla_%s_%d_%d_%d.csv'%(basename, ef_construction, m, ef)
-df.to_csv(save_path, sep="\t")
-print("done saving to csv")
-df = pd.read_csv(save_path, delimiter="\t")
-print(df.head())
+finally:
+
+    df = pd.DataFrame(results)
+    save_path = './results/vanilla_%s_%d_%d.csv'%(basename, ef_construction, m)
+    df.to_csv(save_path, sep="\t")
+    print("done saving to csv")
+    df = pd.read_csv(save_path, delimiter="\t")
+    print(df.head())
