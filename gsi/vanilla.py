@@ -27,7 +27,7 @@ def size_num(s):
     else: raise Exception("Unsupported size " + s)
 
 # GET PATH and LOAD FILES
-data_path = '/home/gwilliams/Projects/GXL/deep-10M.npy'
+data_path = '/home/gwilliams/Projects/GXL/deep-1000M.npy'
 data = np.load(data_path, allow_pickle=True)
 query_path = '/home/gwilliams/Projects/GXL/deep-queries-1000.npy'
 queries = np.load(query_path, allow_pickle=True)
@@ -111,6 +111,10 @@ except:
     print("Waiting...")
     mon_thread.join() # wait here for monitor thread to finish
 
+    process = psutil.Process()
+    total_mem = process.memory_info()
+    print("total memory: ", total_mem)
+
 else:
 
     end_time = datetime.datetime.now()
@@ -159,6 +163,12 @@ else:
     print("done... appending to df...")
 
 finally:
+
+    results.append({'operation':'total_mem', 'start_time':-1, \
+            'end_time':-1, 'walltime':-1,\
+            'units':-1, 'dataset':-1, 'numrecs':-1,\
+            'ef_construction':-1, 'M':-1, 'ef_search':ef, 'labels':-1, \
+            'distances':-1, 'memory':total_mem})
 
     df = pd.DataFrame(results)
     df.to_csv(save_path, sep="\t")
