@@ -12,7 +12,8 @@ ef_search = [64, 128, 256, 512]
 results = []
 
 # paths
-index_dir = '/mnt/nas1/GXL/deep1B/v2.0_with250Mfix/'
+#index_dir = '/mnt/nas1/GXL/deep1B/v2.0_with250Mfix/'
+index_dir = '/mnt/nas1/GXL/deep1B/v2.0_with250Mfix_8apus_apu3'
 filename = 'deep1B_1000m_ef_64_M_32_gxl.bin'
 index_path = os.path.join(index_dir, filename)
 data_path = '/mnt/nas1/fvs_benchmark_datasets/deep-1000M.npy'

@@ -69,7 +69,7 @@ def mon_system():
 
         results.append({'operation':'mem', 'start_time':start_time, 'end_time':-1,\
         'walltime':-1, 'units':'seconds',\
-	    'dataset':-1, 'numrecs':-1,'ef_construction':-1,\
+	    'dataset':basename, 'numrecs':num_records,'ef_construction':-1,\
 	    'M':-1, 'ef_search':-1, 'labels':-1, 'distances':-1, 'memory':[mem.rss, mem.vms, mem.shared, mem.text, mem.lib, mem.data, mem.dirty]})
 
         df = pd.DataFrame(results)
@@ -111,10 +111,6 @@ except:
     print("Waiting...")
     mon_thread.join() # wait here for monitor thread to finish
 
-    process = psutil.Process()
-    total_mem = process.memory_info()
-    print("total memory: ", total_mem)
-
 else:
 
     end_time = datetime.datetime.now()
@@ -130,6 +126,10 @@ else:
         'walltime':(end_time-start_time).total_seconds(), 'units':'seconds',\
         'dataset':basename, 'numrecs':num_records,'ef_construction':ef_construction,\
         'M':m, 'ef_search':-1, 'labels':-1, 'distances':-1, 'memory':-1})
+
+    df = pd.DataFrame(results)
+    df.to_csv(save_path, sep="\t")
+    print("syncing build results to csv", save_path)
 
     # Saving Index
     """
@@ -159,14 +159,22 @@ else:
             'ef_construction':-1, 'M':-1, 'ef_search':ef, 'labels':labels, \
             'distances':distances, 'memory':-1})
 
+        df = pd.DataFrame(results)
+        df.to_csv(save_path, sep="\t")
+        print("syncing search ef %d results to csv" % ef, save_path)
+
 
     print("done... appending to df...")
 
 finally:
 
+    process = psutil.Process()
+    total_mem = process.memory_info()
+    print("total memory: ", total_mem)
+
     results.append({'operation':'total_mem', 'start_time':-1, \
             'end_time':-1, 'walltime':-1,\
-            'units':-1, 'dataset':-1, 'numrecs':-1,\
+            'units':-1, 'dataset':basename, 'numrecs':num_records,\
             'ef_construction':-1, 'M':-1, 'ef_search':ef, 'labels':-1, \
             'distances':-1, 'memory':total_mem})
 
