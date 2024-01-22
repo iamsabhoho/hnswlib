@@ -6,11 +6,13 @@
 LEDAGSSH    =   "ledag-ssh -o localhost"
 
 # default search location for datasets
-DSET_LOCAL  =   "/home/gwilliams/Projects/GXL"
+#DSET_LOCAL  =   "/home/gwilliams/Projects/GXL"
+DSET_LOCAL  =   "/home/sho/GXL"
 DSET_REMOTE =   "/mnt/nas1/fvs_benchmark_datasets"
 
 # default location for GXL utilities
-GXL_PATH    =   "/home/gwilliams/Projects/GXL/bin"
+#GXL_PATH    =   "/home/gwilliams/Projects/GXL/bin"
+GXL_PATH    =   "/home/sho/GXL/bin"
 
 # gxl utility to generate centroids
 CEN_GEN     =   "run-gxl-cen-gen"
@@ -68,7 +70,7 @@ def get_leda_info( ):
             time.sleep(0.01)
             continue
         bs = b.decode('utf-8')
-        if VERBOSE: print("leda output: %s" % bs, end="")
+        if VERBOSE: print("leda output: %s" % bs, "")
         if bs.find("slot")>=0:
             slots.append( bs )
         if bs.startswith("localhost >"):
@@ -151,7 +153,7 @@ def run_cen_gen_utility( cpunodebind, preferred, workdir, fbin_path ):
             time.sleep(0.01)
             continue
         bs = b.decode('utf-8')
-        if VERBOSE: print("gxl: %s" % bs, end="")
+        if VERBOSE: print("gxl: %s" % bs, "")
 
     return True
 
@@ -196,7 +198,7 @@ def run_knn_graph_gen_utility( cpunodebind, preferred, workdir, fbin_path, clean
             time.sleep(0.01)
             continue
         bs = b.decode('utf-8')
-        if VERBOSE: print("gxl: %s" % bs, end="")
+        if VERBOSE: print("gxl: %s" % bs, "")
 
     if cleanup: # done with the centroids file so remove it
         cmd = [ "rm", "./generated_q_centroids.bin" ]
@@ -248,7 +250,7 @@ def run_knn_make_symmetric_gen_utility( cpunodebind, preferred, workdir, cleanup
             time.sleep(0.01)
             continue
         bs = b.decode('utf-8')
-        if VERBOSE: print("gxl: %s" % bs, end="")
+        if VERBOSE: print("gxl: %s" % bs, "")
 
     if cleanup: # done with the non symmetric file so remove it
         cmd = [ "rm", "./knn_graph.bin" ]
@@ -307,7 +309,7 @@ def run_index_gen_utility( cpunodebind, preferred, workdir, fbin_path, lbl_path,
             time.sleep(0.01)
             continue
         bs = b.decode('utf-8')
-        if VERBOSE: print("gxl: %s" % bs, end="")
+        if VERBOSE: print("gxl: %s" % bs, "")
 
     if cleanup:
         cmd = [ "rm", "./s_knn_graph.bin" ]
