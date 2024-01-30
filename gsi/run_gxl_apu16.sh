@@ -10,7 +10,8 @@ set -x
 # create timestamped output dir
 TIMESTAMP=$(date +%s) # form a top-level directory name with current timestamp
 #OUTPUT="/mnt/nvme1/george/GXL/experiments/gxl_$TIMESTAMP"
-OUTPUT="/tmp/gxl/gxl_$TIMESTAMP"
+#OUTPUT="/tmp/gxl/gxl_$TIMESTAMP"
+OUTPUT="/home/sho/GXL/out_namibia_0126"
 mkdir -p $OUTPUT
 
 #
@@ -22,8 +23,6 @@ DATASET="deep-1M"
 echo "Running GXL on $DATASET"
 echo "Writing output to $OUTPUT"
 python -u gxl_bench.py --dataset $DATASET --output "$OUTPUT/$DATASET" | tee "$OUTPUT/$DATASET.log" 
-
-exit 
 
 # run GXL on 10M
 DATASET="deep-10M"

@@ -388,7 +388,7 @@ if __name__ == "__main__":
 
     # check output dir
     if os.path.exists( args.output ):
-        raise Exception("ERROR: output directory alreaddy exists.")
+        raise Exception("ERROR: output directory already exists.")
     os.makedirs(args.output, exist_ok=False)
     print("Created directory at", args.output)
 
