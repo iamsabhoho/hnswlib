@@ -9,7 +9,7 @@ set -x
 
 # create timestamped output dir
 TIMESTAMP=$(date +%s) # form a top-level directory name with current timestamp
-OUTPUT="/home/sho/GXL/out_namibia_0124"
+OUTPUT="/home/sho/GXL/out_namibia_0201_1"
 mkdir -p $OUTPUT
 
 #

@@ -87,28 +87,33 @@ def get_datasets( workdir, dset ):
         Copy as needed.'''
 
     # fbin, try local first
-    fbin_path = os.path.join( DSET_LOCAL, "%s.fbin" % dset )
+    #fbin_path = os.path.join( workdir, "%s.fbin" % dset )
+    fbin_path = '/home/sho/GXL/deep-1000M.fbin'
     if not os.path.exists(fbin_path):
         # copy from remote
-        fbin_path = os.path.join( DSET_REMOTE, "%s.fbin" % dset )
-        cmd = [ "cp", fbin_path, workdir ]
+        fbin_path_remote = os.path.join( DSET_REMOTE, "%s.fbin" % dset )
+        cmd = [ "cp", fbin_path_remote, workdir ]
         if VERBOSE: print("\nRunning cp command", cmd, "\n")
         rcode = call(cmd)
         if rcode!=0:
-            print("ERROR: Could not copy file %s to %s" % (fbin_path ,workdir))
+            print("ERROR: Could not copy file %s to %s" % (fbin_path_remote ,workdir))
             return False
 
     # lbl, try local first
-    lbl_path = os.path.join( DSET_LOCAL, "%s.lbl" % dset )
+    lbl_path = os.path.join( workdir, "%s.lbl" % dset )
+    #lbl_path = '/home/sho/GXL/deep-1000.lbl'
     if not os.path.exists(lbl_path):
         # copy from remote
-        lbl_path = os.path.join( DSET_REMOTE, "%s.lbl" % dset )
-        cmd = [ "cp", lbl_path, workdir ]
+        lbl_path_remote = os.path.join( DSET_REMOTE, "%s.lbl" % dset )
+        cmd = [ "cp", lbl_path_remote, workdir ]
         if VERBOSE: print("\nRunning cp command", cmd, "\n")
         rcode = call(cmd)
         if rcode!=0:
-            print("ERROR: Could not copy file %s to %s" % (lbl_path ,workdir))
+            print("ERROR: Could not copy file %s to %s" % (lbl_path_remote ,workdir))
             return False
+    
+    print(fbin_path)
+    print(lbl_path)
     
     return fbin_path, lbl_path
 
